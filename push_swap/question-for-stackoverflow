@@ -1,0 +1,934 @@
+Answer by Trincot
+
+As the main function actually selects a different sorting algorithm depending on the size of the input, it makes little sense to try to extrapolate the number of operations on small data sets to larger data sets.
+
+It is also an unwarranted assumption that there is a *linear* relation between the number of operations for sorting in terms of the input size: for larger inputs, it uses [the radix sort implementation](https://github.com/Kuninoto/42_push_swap/blob/master/lvl_2_push_swap/srcs/algos/radix_sort.c) you quoted.
+
+In the worst case `is_sorted(a)` will not be true at an earlier stage, and then we have an outer loop of log𝑛 and an inner loop performing an operation for each value in stack A (which always initially has all values). That algorithm produces therefor O(𝑛log𝑛) operations, not O(𝑛).
+
+You write:
+
+> For 500 integers, the result ranges from 6740 to 6960 steps.
+
+On the question whether a better algorithm exists, here is one:
+
+### Algorithm
+
+First phase:
+
+* Determine the median of stack A. Call the set of values that are less than that median X, and the set of the remaining values Y.
+
+* Determine the median of X. 
+
+* Move all values in X that are less than the second median to the bottom of stack B and all values in X that are greater than that median to the top of stack B. Values in Y should just rotate to the bottom of stack A.
+
+* Now stack A has half its original size, and stack B has two partitions: its top half has values that are all greater than its bottom values
+
+* Repeat the above until A is only left with 3 values. Sort those three values. Stack B will end up with several partitions of varying size. The outermost partitions will have the greatest values, and the innermost will have the lesser values.
+
+Second phase:
+
+In this phase stack A will always be circularly sorted, i.e. it only needs rotations to be sorted.
+
+* Repeatedly take a value from stack B and insert it into the sorted index in stack A, i.e. at the single position where the above invariant is not broken. Calculate which one of the possible candidate values in Stack B requires the least operations to do that. Both stacks may need rotations: B rotates the chosen value to its top, and A rotates to bring the desired insert position at its top. If either stack was rotated to retrieve and accept the value, these rotations don't need to be reversed after the push. Make use of the combined operators (`rr`, `rrr`) when possible.
+
+* Repeat the above until stack B is empty.
+
+* Rotate stack A so that its greatest value is at the bottom.
+
+To extend this to undefined larger inputs, you would need to apply the split into partitions multiple times, switching stacks to repeat a similar phase as the first one, and acting on large partitions to split them up into smaller ones. Acceptable sizes for partitions are up to about 450. When partitions get much larger than that you need to add a partitioning from stack B to A, ...etc. I will not dwell on this, as your question seems to target inputs of up to 500 values, but it is an essential step to achieve an acceptable asymptotic complexity.
+
+Note that this challenge does not look for an optimal time complexity of the *algorithm*, but of the *output size*. So in theory you can spend as much time as you want to try different methods/parameters to get the input sorted and finally take the one that turns out best.
+
+### Implementation
+
+Below is an implementation. I chose JavaScript so I could provide a runnable snippet here. Some of the characteristics:
+
+* A circular linked list class for the stacks.
+
+* A PushSwap class as the combination of two stacks.
+
+* A class to collect the actions (ra, rb, ...etc). Its `optimise` method finds some common patterns that can be reduced to a shorter list of actions. For instance, it will replace `ra` rotations when fewer `rra` can achieve the same. Or, it will eliminate two consecutive `sa`, ...etc.
+
+* The actions are grouped into `ActionNode` objects, which is a set of rotations (multiple rotations on one or both stacks) and a final (single) push or swap. This makes it easier to spot optimisations that concern rotations (grouping some of them into `rr` or `rrr`).
+
+* The solver will run three times with different bucket sizes, selecting the shortest output.
+
+### Snippet:
+
+<!-- begin snippet: js hide: false console: true babel: false -->
+
+<!-- language: lang-js -->
+
+    // Utility functions:
+    const mod = (a, b) => b ? ((a % b) + b) % b : 0;
+
+    function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function normalise(values) { // Map values to their index when sorted
+        const res = Array(values.length);
+        values.map((a, i) => [a, i])
+              .toSorted(([a], [b]) => a - b)
+              .forEach(([,val], i) => res[val] = i);
+        return res;
+    }
+
+    class CircularLinkedList {
+        static Node = class {
+            constructor(value, after=null) {
+                this.value = value;
+                this.next = after?.next ?? this;
+                this.prev = after ?? this;
+                this.next.prev = this.prev.next = this;
+            }
+            detach() {
+                if (this.next === this) return null;
+                this.next.prev = this.prev;
+                this.prev.next = this.next;
+                return this.prev;
+            }
+        }
+        constructor(values) {
+            this.topNode = null;
+            this.length = 0;
+            // First value should become the top of the stack -- Push in reverse order
+            for (let i = values?.length - 1; i >= 0; i--) {
+                this.push(values[i]);
+            }
+        }
+        push(value) {
+            this.topNode = new CircularLinkedList.Node(value, this.topNode);
+            this.length++;
+        }
+        pop() {
+            if (!this.topNode) return;
+            const value = this.topNode.value;
+            this.topNode = this.topNode.detach();
+            this.length--;
+            return value;
+        }
+        get top() {
+            return this.topNode?.value ?? null;
+        }
+        *topDown() {
+            if (!this.topNode) return;
+            let node = this.topNode;
+            do {
+                yield node.value;
+                node = node.prev;
+            } while (node != this.topNode);
+        }
+        *topDownEntries() { 
+            let i = 0; // Index starting at top
+            for (const value of this.topDown()) {
+                yield [i++, value];
+            }
+        }
+        *bottomUp() {
+            if (!this.topNode) return;
+            let node = this.topNode.next;
+            while (node != this.topNode) {
+                yield node.value;
+                node = node.next;
+            }
+            yield node.value;
+        }
+        // Extra savepoint feature
+        getSavepoint() {
+            return {
+                topNode: this.topNode, // Might be detached later, but we can still walk back into the actual list
+                bottomNode: this.topNode?.next,
+                length: this.length,
+            }
+        }
+        restoreSavepoint(savepoint) {
+            const {topNode, bottomNode, length} = savepoint;
+            this.length = length;
+            this.topNode = topNode;
+            if (!topNode) return;
+            topNode.next = bottomNode;
+            for (let node = topNode; node.prev.next !== node; node = node.prev) {
+                node.next.prev = node.prev.next = node;
+            }
+        }
+    }
+
+    class RotatableLinkedList extends CircularLinkedList {
+        get bottom() {
+            return this.topNode?.next?.value ?? null;
+        }   
+        rotate(steps=1)  { // Rotate with given number of steps (can be negative)
+            if (this.length < 2) return;
+            steps %= this.length;
+            for (; steps > 0; steps--) this.topNode = this.topNode.prev;
+            for (; steps < 0; steps++) this.topNode = this.topNode.next;
+        }
+        swap()  { // Swap two top elements
+            if (this.length < 2) return;
+            [this.topNode.value, this.topNode.prev.value] = [this.topNode.prev.value, this.topNode.value];
+        }
+        *zigzag() { 
+            // Yield entries in order of the number of ra or rra rotations needed to get them to the top:
+            //    Negative ra values indicate rra instead of ra.
+            const n = this.length;
+            const props = ["next", "prev"];
+            const nodes = [this.topNode, this.topNode.prev];
+            for (let ra = 0, i = 0; i < n; ra += ++i % 2 ? i : -i) {
+                yield [ra, nodes[i % 2].value];
+                nodes[i % 2] = nodes[i % 2][props[i % 2]];
+            }
+        }
+    }
+
+    const NONE = 0, PUSH = 1, SWAP = 2;
+
+    class ActionNode {
+        constructor(rotsA, rotsB=0, mutation=NONE, target=0) {
+            // The given rotations are supposed to occur first, and then either a swap or push can occur.
+            this.rots = [rotsA, rotsB]; // Signed integers for ra (rra) and rb (rrb)
+            this.mutation = mutation; // NONE, PUSH or SWAP
+            this.target = target; // 0 or 1, i.e. stack number
+        }
+        is(rotsA, rotsB=0, mutation=NONE, target=0) {
+            return (rotsA === null || this.rots[0] === rotsA) 
+                && (rotsB === null || this.rots[1] === rotsB)
+                && (mutation === null || this.mutation === mutation) 
+                && (mutation === NONE || target === null || this.target === target);
+        }
+        numActions() {
+            return (this.rots[0] * this.rots[1] < 0
+                            ? Math.abs(this.rots[0]) + Math.abs(this.rots[1]) 
+                            : Math.max(Math.abs(this.rots[0]), Math.abs(this.rots[1]))
+                   ) + (this.mutation !== NONE);
+        }
+        *getActionNames() {
+            const ra = Math.max(0, this.rots[0]);
+            const rb = Math.max(0, this.rots[1]);
+            const rr = Math.min(ra, rb);
+            const rra = Math.max(0, -this.rots[0]);
+            const rrb = Math.max(0, -this.rots[1]);
+            const rrr = Math.min(rra, rrb);
+            for (let i = rr;  i < ra;  i++) yield "ra";
+            for (let i = rr;  i < rb;  i++) yield "rb";
+            for (let i = 0;   i < rr;  i++) yield "rr";
+            for (let i = rrr; i < rra; i++) yield "rra";
+            for (let i = rrr; i < rrb; i++) yield "rrb";
+            for (let i = 0;   i < rrr; i++) yield "rrr";
+            if (this.mutation !== NONE) yield " ps"[this.mutation] + "ab"[this.target];
+        }
+        set(a, b, mutation, target) {
+            return new ActionNode(a ?? this.rots[0], b ?? this.rots[1], 
+                                    mutation ?? this.mutation, target ?? this.target);
+        }
+        insert(stack, direction, mutation, target) {
+            return this.set(this.rots[0] + (1-stack)*direction,
+                            this.rots[1] + stack*direction,
+                            mutation, target);
+        }
+    }
+
+    class ActionStack extends CircularLinkedList {
+        constructor(stackSize) {
+            super();
+            this.numActions = 0;
+            this.sizes = [stackSize, 0];
+        }
+
+        getSavepoint() {
+            return {
+                ...super.getSavepoint(),
+                numActions: this.numActions,
+                sizes: [...this.sizes],
+            }
+        }
+        restoreSavepoint(savepoint) {
+            super.restoreSavepoint(savepoint);
+            this.numActions = savepoint.numActions;
+            this.sizes = [...savepoint.sizes];        
+        }
+
+        addRotation(stack, direction)  { return this.add( (1-stack)*direction,  stack*direction) }
+
+        add(rotsA, rotsB=0, mutation=NONE, target=0) {
+            return this.addNode(new ActionNode(rotsA, rotsB, mutation, target));
+        }
+        addNode(node) {
+            // Optimise node
+            node = this.optimiseNode(node);
+            if (!node) return this; // Nothing to do
+            // Add the node...
+            this.push(node);
+            this.numActions += node.numActions();
+            if (node.mutation === PUSH) {
+                this.sizes[node.target]++;
+                this.sizes[1-node.target]--;
+            }
+            // ...and then see if optimisations are possible
+            return this.optimise();
+        }
+        popNodes(count=1) {
+            while (count-- > 0) {
+                const node = this.pop();
+                this.numActions -= node.numActions();
+                if (node.mutation === PUSH) {
+                    this.sizes[node.target]--;
+                    this.sizes[1-node.target]++;
+                }
+            }
+            return this;
+        }
+        optimiseNode(curr) {
+            if (!curr.numActions()) return null; // Remove useless node
+            // Push or Swap that has no effect?
+            if (curr.mutation === PUSH && this.sizes[1-curr.target] === 0 || 
+                    curr.mutation === SWAP && this.sizes[curr.target] < 2) {
+                return this.optimiseNode(curr.set(null, null, NONE, 0));
+            }
+            // Can rotations be made more optimal if inverted?
+            let [a, b] = curr.rots;
+            let [alen, blen] = this.sizes;
+            a = mod(a, alen);
+            b = mod(b, blen);
+            // The four different possibilities:
+            let best = 0;
+            let bestCost = alen + blen;
+            for (let i = 0; i < 4; i++) {
+                const c = i >= 2 ? Math.abs(a - alen) : a;
+                const d = i % 2  ? Math.abs(b - blen) : b;
+                const cost = c + d - (i % 3 > 0 ? 0 : Math.min(c, d));
+                if (cost < bestCost) {
+                    bestCost = cost;
+                    best = i;
+                }
+            }
+            // Get best possibility
+            if (best > 1) a -= alen;
+            if (best % 2 == 1) b -= blen;
+            // is this the one actually used?
+            if (a !== curr.rots[0] || b !== curr.rots[1]) return this.optimiseNode(curr.set(a, b));
+            // A swap on a stack of size two: convert to rotation
+            if (curr.mutation === SWAP && this.sizes[curr.target] === 2) return this.optimiseNode(curr.insert(curr.target, 1, NONE, 0));
+            return curr;
+        }
+        optimise() {
+            const curr = this.topNode.value;
+            const prev = this.topNode.prev.value;
+            const prevPrev = this.topNode.prev.prev.value;
+            const stack = 1-curr.target;
+            const numRotations = curr.rots[stack];
+            if (this.length > 0) {
+                // Case: move other-stack rotations forward to the other side of sa (and its mirror case): 
+                if (curr.mutation === SWAP && numRotations !== 0) {
+                    // Move rotations forward into a new node
+                    return this.popNodes(1) // * sa
+                               .addNode(curr.insert(stack, -numRotations)) // sa
+                               .addRotation(stack, numRotations); // *
+                }
+            }
+            if (this.length > 1) {
+                // Cases: rotation sequences that can merge into one node
+                if (this.length > 1 && prev.mutation === NONE) {
+                    return this.popNodes(2)
+                               .addNode(curr.set(curr.rots[0] + prev.rots[0], curr.rots[1] + prev.rots[1]));
+                }
+                // Cases: pb pa (or: sa sb) (and their mirrors)
+                if (curr.is(0, 0, prev.mutation, prev.mutation === PUSH ? 1 - prev.target : prev.target)) { 
+                    // opposite push/swaps with no rotations between them: they cancel eachother
+                    return this.popNodes(2) // pb pa (or: sa sb)
+                               .addNode(prev.set(null, null, NONE, 0)); // mutation deleted
+                }
+                // Case: pa ra rrb pa => rrb pa pa ra
+                const dir = curr.target ? 1 : -1;
+                if (curr.is(-dir, dir, PUSH, curr.target) && prev.is(null, null, PUSH, curr.target)) {
+                    return this.popNodes(2) // pa, ra-rrb-pa
+                               .addNode(prev.insert(1-curr.target, -1)) // rrb pa
+                               .add( 0,  0, PUSH, curr.target) // pa
+                               .addRotation(curr.target, 1); // ra
+                }
+                // Case: ra pb rra => sa pb (and its mirror)
+                const swapSide = 1-prev.target;
+                if (prev.mutation === PUSH && prev.rots[swapSide] > 0 && curr.rots[swapSide] < 0) {
+                    return this.popNodes(2) // ra-pb, rra
+                               .addNode(prev.insert(swapSide, -1, SWAP, swapSide)) // sa
+                               .addNode(new ActionNode(0, 0, PUSH, 1-swapSide))  // pb
+                               .addNode(curr.insert(swapSide, 1));  // -rra
+                }
+            }
+            if (this.length > 2) {
+                // Case: pb sa pa => ra sa rra (and its mirror)
+                if (prevPrev.is(null, null, PUSH, stack) 
+                        && prev.is(0, 0, SWAP, curr.target) && curr.is(0, 0, PUSH, curr.target)) { 
+                    return this.popNodes(3) // pb sa pa
+                               .addNode(prevPrev.set(null, null, SWAP, curr.target).insert(curr.target, 1)) // ra sa
+                               .addRotation(curr.target, -1); // rra
+                }
+            }
+            return this;
+        }
+        dump() {
+            const arr = [];
+            for (const node of this.bottomUp()) arr.push(...node.getActionNames());
+            return arr;
+        }
+    }    
+
+    class PushSwap extends RotatableLinkedList {
+        constructor(values=[], other=null) {
+            super(normalise(values));
+            this.log = other?.log ?? new ActionStack(values.length); // Both stacks share same log
+            this.other = other ?? new PushSwap([], this); // Back reference
+            this.isB = +!!other; // is this stack B? (0 or 1)
+            this.stacks = [this, this.other];
+            if (other) this.stacks.reverse();
+        }
+        pushOver()  { // pop value from other stack and push it on this stack 
+            this.other.length && this.push(this.other.pop());
+        }
+        createActionNode(rotation, otherRotation=0, mutation=NONE) {
+            if (this.isB) [rotation, otherRotation] = [otherRotation, rotation];
+            return new ActionNode(rotation, otherRotation, mutation, this.isB);
+        }
+        apply(rotation, otherRotation=0, mutation=NONE) {
+            return this.applyNode(this.createActionNode(rotation, otherRotation, mutation));
+        }
+        applyNode(actionNode) { // Action node has absolute stack references (not relative)
+            this.stacks[0].rotate(actionNode.rots[0]);
+            this.stacks[1].rotate(actionNode.rots[1]);
+            if (actionNode.mutation === PUSH) this.stacks[actionNode.target].pushOver();
+            if (actionNode.mutation === SWAP) this.stacks[actionNode.target].swap();
+            this.log.addNode(actionNode);
+            return this;
+        }
+        // Methods that are (more) specific to the sorting algorithm
+        getRotationsNeededForInserting(val) {
+            // Assumes that the stack is cyclic sorted.
+            // Returns (signed) number of ra needed to get insertion point for val at the top
+            let prev = this.bottom;
+            for (const [i, next] of this.topDownEntries()) {
+                if ((prev < val) + (val < next) === 1 + (prev < next)) return i;
+                prev = next;
+            }
+        }
+        rotateLeastToTop() {
+            this.apply(this.getRotationsNeededForInserting(-1));
+        }
+        find(searchValue) {
+            for (const [rbCount, value] of this.zigzag()) {
+                if (value === searchValue) return rbCount;
+            }
+        }
+        sortBucket(low, remainder, factor) {
+            if (remainder <= 0) return this.threeSort();
+            let len = this.length + this.other.length;
+            // Following values determined statistically. These are parameters that can be played with...
+            const firstRatio = 0.33, normalRatio = 0.42, lastRatio = 0.60, limit = 32;
+
+            // An expression to determine the ratio of elements in A that should move as 2 buckets on stack B.
+            let ratio = low ? normalRatio + (2/3 - remainder/len)**2 / 2 : firstRatio;
+            if (remainder * lastRatio <= limit) ratio = lastRatio;
+            ratio *= factor; // Apply some variation to this ratio -- used to get different results to choose from.
+            const twoBucketsSize = remainder <= limit ? remainder : Math.ceil(remainder * ratio);
+
+            const topSize = twoBucketsSize >> 1;
+            const topBucket = {start: low, end: low + topSize};
+            const bottomBucket = {start: low + topSize, end: low + twoBucketsSize};
+            const buckets = [bottomBucket, topBucket];
+
+            // Populate the buckets on stack B.
+            let delayedR = 0;
+            let safety = 1000;
+            for (let i = 0; i < twoBucketsSize; i++) {
+                let bucket;
+                while (!(bucket = buckets.find(bucket => this.top >= bucket.start && this.top < bucket.end))) {
+                    if (safety-- < 0) throw "safety stop";
+                    const rb = +(delayedR > 0);
+                    this.apply(1, rb);
+                    delayedR -= rb;
+                }
+                this.other.apply(bucket === topBucket ? delayedR : 0, 0, PUSH);
+                delayedR = bucket === topBucket ? 0 : delayedR + 1;
+            }
+            // Buckets are now populated. Continue with next buckets (recursion)
+            this.sortBucket(bottomBucket.end, remainder - twoBucketsSize, 1/factor);
+            // Move the values from those buckets back to A in their sorted positions
+            this.wheelInsert(bottomBucket);
+            this.wheelInsert(topBucket);
+            // ...and put the least value at the top
+            this.rotateLeastToTop();
+        }
+        wheelInsert({start, end}) {
+            let maxValue = end - 1;
+            // Get back a range of values from stack B into stack A
+            for (let i = start; i < end; i++) {
+                if (this.top >= maxValue) maxValue = Math.max(...this.other.topDown()); 
+                this.insertBestValue(start, maxValue);
+            }
+        }
+        getTransferMove(rbCount, value, additionalCost=0) {
+            // Return action needed to get a value in stack B to its top (given its rb-distance)
+            //    and to have the relevant insertion point in stack A at its top also.
+            const savepoint = this.log.getSavepoint();
+            const action = this.createActionNode(this.getRotationsNeededForInserting(value), rbCount, PUSH);
+            const result = { cost: -this.log.numActions + this.log.addNode(action).numActions + additionalCost, action };
+            this.log.restoreSavepoint(savepoint); // Remove the above move form the action log
+            return result;
+        }
+        insertBestValue(minValue, maxValue) {
+            if (this.other.length === 0) return;
+            let best = { cost: Infinity };
+            for (const [rbCount, value] of this.other.zigzag()) {
+                if (Math.abs(rbCount) > 9 ) break;
+                if (value < minValue) continue; // We don't want to touch other buckets
+                // Get move to rotate this value to top of B and rotate A to receive that value, and push
+                const move = this.getTransferMove(rbCount, value, maxValue - value);
+                if (move.cost < best.cost) best = move; // Keep track of cheapest move
+            }
+            // Perform the move for real now
+            this.applyNode(best.action);
+        }
+        threeSort() { // To sort at most three values remaining on stack A.
+            if (this.length === 3) {
+                let [a, b, c] = this.topDown();
+                if ((a < b) + (b < c) + (c < a) === 1) this.apply(0, 0, SWAP);
+            }
+            this.rotateLeastToTop();
+        }
+        static sort(values, bestOf=3) {
+            const maxLeftOver = 3; // Number of values to leave on stack A (threeSort depends on it)
+            const factors = [1, 1.06, 0.95]; // Factors to vary the bucket sizes
+            let bestResult = { length: Infinity };
+            for (let i = 0; i < bestOf; i++) {
+                const pushSwap = new this(values); 
+                // Distribute stack A into buckets on stack B and sort them back into A
+                pushSwap.sortBucket(0, pushSwap.length - maxLeftOver, factors[i]);
+                pushSwap.rotateLeastToTop();
+                const result = pushSwap.log.dump();
+                if (result.length < bestResult.length) bestResult = result;
+            }
+            return bestResult;
+        }
+    }
+
+    // I/O 
+
+    function animate(values, actions) {
+        const resultSizeOutput = document.querySelector("span");
+        const intervalInput = document.querySelector("#interval");
+        const [a, todo, b] = document.querySelectorAll("td");
+        a.innerHTML = todo.innerHTML = b.innerHTML = "";
+
+        function populateTable(table, values) {
+            const n = values.length;
+            const width = 500;
+            const height = Math.max(1, Math.floor(500 / n)) + "px";
+            for (const value of values) {
+                const bar = document.createElement("div");
+                bar.style.height = height;
+                bar.style.width = ((value+1)/n*width) + "px";
+                bar.style.backgroundColor = "hsl(" + (value / values.length * 245 + 180) + "deg 100% 50%)";
+                table.appendChild(bar);
+            }
+        }
+        const insert = (bar, table) => table.children.length ? table.insertBefore(bar, table.firstChild) : table.appendChild(bar);
+        const revRotate = table => table.children.length > 1 && insert(table.lastChild, table);
+        const rotate = table => table.children.length > 1 && table.appendChild(table.firstChild);
+        const swap = table => table.children.length > 1 && insert(table.children[1], table);
+        const pushOver = (src, dst) => src.children.length && insert(src.firstChild, dst);
+
+        populateTable(a, normalise(values));
+        const n = actions.length;
+        let abort;
+        todo.innerHTML = "<div>" + actions.join("<br>") + "</div>";
+        setTimeout(function loop() {
+            if (abort) return;
+            const action = actions.shift();
+            if (!action) return;
+            todo.innerHTML = "<div>" + actions.join("<br>") + "</div>";
+            resultSizeOutput.textContent = `${n - actions.length} / ${n}`;
+            if (action === "ra" ) rotate(a);
+            if (action === "rra") revRotate(a);
+            if (action === "rb" ) rotate(b);
+            if (action === "rrb") revRotate(b);
+            if (action === "rr" ) { rotate(a); rotate(b); }
+            if (action === "rrr") { revRotate(a); revRotate(b); }
+            if (action === "sa" ) swap(a);
+            if (action === "sb" ) swap(b);
+            if (action === "ss" ) { swap(a); swap(b); }
+            if (action === "pa" ) pushOver(b, a);
+            if (action === "pb" ) pushOver(a, b);
+            setTimeout(loop, +intervalInput.value);
+        }, +intervalInput.value);
+        return () => abort = true;
+    }
+
+    function main(PushSwap) {
+        const [sizeInput, stackInput] = document.querySelectorAll("input");
+        const resultSizeOutput = document.querySelector("span");
+        const [randomButton, solveButton] = document.querySelectorAll("button");
+        let cancel = () => null;
+
+        randomButton.addEventListener("click", () => {
+            const size = +sizeInput.value || 0;
+            stackInput.value = shuffle([...Array(size).keys()]).join(" ");
+        });
+
+        solveButton.addEventListener("click", () => {
+            cancel();
+            const values = stackInput.value.match(/-?\d+/g).map(Number);
+            const actions = PushSwap.sort(values);
+            resultSizeOutput.textContent = actions.length;
+            cancel = animate(values, actions);
+        });
+    }
+
+    main(PushSwap);
+
+<!-- language: lang-css -->
+
+    table { border-collapse: collapse; width: 100%; height: 100%; }
+    tr { height: 502px; max-height: 502px; }
+    table { width: 100%; background: silver; overflow: clip; }
+    td { width: 49%; vertical-align: top; }
+    td:nth-child(2) { width: 20px; border: 1px solid }
+    td:nth-child(2) > div { height: 500px; overflow-y:hidden; }
+    input[type=number] { width: 4em }
+
+<!-- language: lang-html -->
+
+    Size: <input type="number" value="500" min="3" max="500"><button>Generate</button>
+    Input: <input><button>Sort</button>
+    Interval (ms): <input id="interval" type="number" value="0" min="0" step="200">
+    Actions: <span></span>
+    <table><tr><td></td><td></td><td></td></tr></table>
+
+<!-- end snippet -->
+
+### Performance
+
+This implementation needs 3610 actions on average to sort 500 values.
+--------
+@trincot. You're welcome. 😊 Pseudo code or code in any programming language is fine.
+
+---------
+@trincot. Thank you so much for your answer. Like Kelly Bundy, I would like to have your code (if you are willing to share).
+
+---------
+@trincot. My apologies for not replying promptly and not inserting the code in this page (because I think it's messy to insert so much code here and the code may not be relevant since it's possible to answer my question without the code). I just realised from https://github.com/Kuninoto/42_push_swap/blob/master/lvl_2_push_swap/main.c that the code used:
+
+special.c for n = 3,
+
+midpoint_sort.c for n = 4 to n = 199 and
+
+radix_sort.c for n >= 200.
+
+You are right that my "using regression on n = 3, 4, 5 and 9 to extrapolate for n = 500" is meaningless.
+
+----------
+@trincot. I am hoping that even without any code, someone here can figure out the lowest possible estimated number of steps or time complexity. For Kuninoto's code that I used, you have to go into the lvl_2_push_swap folder and the sub-folders. The file names at https://github.com/Kuninoto/42_push_swap/tree/master/lvl_2_push_swap/srcs/algos show "insertion_sort.c", "midpoint_sort.c", "radix_sort.c" and "special_case.c".
+
+For the extrapolation, I used Linux LibreOffice Calc (similar to Microsoft Excel) and got "max_steps = 5.108n - 12.8", where n = number of integers to sort.
+
+-------------
+@trincot. rr is counted as one step. ra and rb are counted as 2 steps. Thanks for helping to edit my post. 😊 – 
+Neo
+Oct 6 at 4:59
+
+------------
+Version 2 (include all relevant info inline in the question, not via links)
+
+Lowest possible estimated number of steps or time complexity for push_swap program for 42
+
+I am looking at the [following code challenge](https://github.com/byaliego/push_swap/blob/main/en.subject-pushswap.pdf):
+> ### The “push_swap” program
+> 
+> You have to write a program named push_swap which will receive as an argument a stack formatted as a list of integers. The first argument should be at the top of the stack (be careful about the order).
+>  
+> The program must display the smallest list of instructions possible to sort the stack, the smallest number being at the top.
+> 
+> Instructions must be separated by a `\n` and nothing else.
+> 
+> The goal is to sort the stack with the minimum possible number of operations. During defence we’ll compare the number of instructions your program found with a maximum number of operation tolerated. If your program either displays a list too big or if the list isn’t sorted properly, you’ll get no points.
+> 
+> In case of error, you must display Error followed by a `\n` on the standard error. Errors include for example: some arguments aren’t integers, some arguments are bigger than an integer, and/or there are duplicates.
+> 
+> ### Game rules
+> 
+> The game is composed of 2 stacks named `a` and `b`.
+> 
+> To start with:
+> 
+> * `a` contains a random number of either positive or negative numbers without any duplicates.
+> * `b` is empty
+> 
+> The goal is to sort (in ascending order) numbers into stack `a`.
+> 
+> To do this you have the following operations at your disposal:
+> 
+> ### Commands and Description of Each Command:
+> 
+> * `sa`: swap `a` - swap the first 2 elements at the top of stack `a`. Do nothing if there is only one or no elements).
+> * `sb`: swap `b` - swap the first 2 elements at the top of stack `b`. Do nothing if there is only one or no elements).
+> * `ss`: `sa` and `sb` at the same time.
+> * `pa`: push `a` - take the first element at the top of `b` and put it at the top of `a`. Do nothing if `b` is empty.
+> * `pb`: push `b` - take the first element at the top of `a` and put it at the top of `b`. Do nothing if `a` is empty.
+> * `ra`: rotate `a` - shift up all elements of stack `a` by 1. The first element becomes the last one.
+> * `rb`: rotate `b` - shift up all elements of stack `b` by 1. The first element becomes the last one.
+> * `rr`: `ra` and `rb` at the same time.
+> * `rra`: reverse rotate `a` - shift down all elements of stack `a` by 1. The last element becomes the first one.
+> * `rrb`: reverse rotate `b` - shift down all elements of stack `b` by 1. The last element becomes the first one.
+> * `rrr`: 	`rra` and `rrb` at the same time.
+> 
+> ### Example 
+> The example below sorts integers in stack `a` in 10 instructions.
+> ```
+> Init a and b:
+> 2
+> 1
+> 3
+> 6
+> 8
+> 5
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec sa:
+> 1
+> 2
+> 3
+> 6
+> 8
+> 5
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec pb pb pb:
+> 6 3
+> 5 2
+> 8 1
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec rr:
+> 5 2
+> 8 1
+> 6 3
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec rrr:
+> 6 3
+> 5 2
+> 8 1
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec sa:
+> 5 3
+> 6 2
+> 8 1
+> _ _
+> a b
+> -------------------------------------------------------------------------------------------------------
+> Exec pa pa pa:
+> 1
+> 2
+> 3
+> 5
+> 6
+> 8
+> _ _
+> a b 
+> -------------------------------------------------------------------------------------------------------
+> ```
+
+### Analysis
+
+I ran a visualizer (https://github.com/o-reo/push_swap_visualizer) on the code at https://github.com/Kuninoto/42_push_swap/tree/master/lvl_2_push_swap. (The file names at https://github.com/Kuninoto/42_push_swap/tree/master/lvl_2_push_swap/srcs/algos show "insertion_sort.c", "midpoint_sort.c", "radix_sort.c" and "special_case.c".)
+
+main.c
+```
+#include "push_swap.h"
+
+int	main(int argc, char **argv)
+{
+	t_stack	a;
+	t_stack	b;
+
+	if (argc < 2)
+		return (EXIT_SUCCESS);
+	a = init_stack(argc - 1);
+	fill_a(&a, parse_input(argc, argv, &a), argc);
+	b = init_stack(argc - 1);
+	if (!is_sorted(&a))
+	{
+		if (a.stack_size == 3)
+			special_case(&a);
+		else if (a.stack_size >= 200)
+			radix_sort(&a, &b);
+		else
+			midpoint_sort(&a, &b);
+	}
+	free_stacks(&a, &b);
+	return (EXIT_SUCCESS);
+}
+```
+
+radix_sort.c
+```
+#include "push_swap.h"
+
+static void	simplify_numbers(t_stack *stack, int *sorted_array)
+{
+	int	i;
+	int	*temp;
+	int	j;
+
+	i = -1;
+	temp = malloc(stack->stack_size * sizeof(int));
+	while (++i < stack->stack_size)
+	{
+		j = -1;
+		while (++j < stack->stack_size)
+		{
+			if (sorted_array[i] == stack->storage[j])
+				temp[j] = i;
+		}
+	}
+	i = -1;
+	while (++i < stack->stack_size)
+		stack->storage[i] = temp[i];
+	free(temp);
+	free(sorted_array);
+}
+
+static int	*gen_sorted_arr(t_stack *stack)
+{
+	int	*sorted_arr;
+	int	i;
+
+	sorted_arr = malloc(stack->stack_size * sizeof(int));
+	i = 0;
+	while (i < stack->stack_size)
+	{
+		sorted_arr[i] = stack->storage[i];
+		i += 1;
+	}
+	insertion_sort(sorted_arr, stack->stack_size);
+	return (sorted_arr);
+}
+
+void	radix_sort(t_stack *a, t_stack *b)
+{
+	int	max_bits;
+	int	num;
+	int	i;
+	int	j;
+
+	max_bits = 0;
+	simplify_numbers(a, gen_sorted_arr(a));
+	num = max(a);
+	while ((num >> max_bits) != 0)
+		max_bits++;
+	i = -1;
+	while (++i < max_bits)
+	{
+		j = -1;
+		while (!is_sorted(a) && (++j < a->stack_size))
+		{
+			num = a->storage[a->top];
+			if (((num >> i) & 0b00000001) == 1)
+				ra(a, true);
+			else
+				pb(a, b);
+		}
+		while (!is_empty(b))
+			pa(a, b);
+	}
+}
+```
+
+midpoint_sort.c
+```
+#include "push_swap.h"
+
+int	find_midpoint(t_stack *stack, int chunk_start)
+{
+	int		mid_point;
+	int		i;
+	int		chunk_size;
+	int		*sorted_arr;
+
+	mid_point = 0;
+	i = 0;
+	chunk_size = (stack->top + 1) - chunk_start;
+	sorted_arr = malloc(chunk_size * sizeof(int));
+	while ((i + chunk_start) < (stack->top + 1))
+	{
+		sorted_arr[i] = stack->storage[i + chunk_start];
+		i += 1;
+	}
+	insertion_sort(sorted_arr, chunk_size);
+	mid_point = sorted_arr[(chunk_size / 2)];
+	free(sorted_arr);
+	sorted_arr = NULL;
+	return (mid_point);
+}
+
+void	midpoint_sort(t_stack *a, t_stack *b)
+{
+	int	chunks;
+	int	mid_point;
+
+	chunks = 1;
+	if (ok_sa(a))
+		sa(a, true);
+	while (a->top > 1)
+	{
+		mid_point = find_midpoint(a, 0);
+		move_smaller_top(a, b, mid_point);
+		move_smaller_bottom(a, b, mid_point);
+		finish_moving(a, b, mid_point, chunks++);
+	}
+	if (a->storage[a->top] > a->storage[a->top - 1])
+		sa(a, true);
+	while (b->top != -1)
+		move_bigger_top(b, a, max(b));
+}
+```
+
+* For 500 integers, the result ranges from 6740 to 6960 steps.
+* For 9 integers, the result ranges from 24 to 33 steps.
+* For 5 integers, the result ranges from 7 to 13 steps.
+* For 4 integers, the result ranges from 5 to 8 steps.
+* For 3 integers, the result ranges from 1 to 2 steps.
+
+I tried regression using the maximum number of steps obtained above (for 3, 4, 5 and 9 integers) and the linear equation ("max_steps = 5.108n - 12.8", where n = number of integers to sort, rSquared of 0.999) gives 2541 steps for 500 integers.
+
+## Question
+
+I am wondering if a better algorithm really exists and if the result is possible to be as low as 2541 for 500 integers. Wrote out a few cases by hand for 4 integers or 5 integers but could not figure out the lowest possible estimated number of steps or time complexity.
+
+----------
+Lowest possible estimated number of steps or time complexity for push_swap program for 42
+
+The push_swap program is described on Page 11 of https://github.com/byaliego/push_swap/blob/main/en.subject-pushswap.pdf.
+
+Game rules are on Page 7. Examples are on Page 8.
+
+I ran a visualizer (https://github.com/o-reo/push_swap_visualizer) on the code at https://github.com/Kuninoto/42_push_swap/tree/master.
+
+For 500 integers, the result ranges from 6740 to 6960 steps.
+For 9 integers, the result ranges from 24 to 33 steps.
+For 5 integers, the result ranges from 7 to 13 steps.
+For 4 integers, the result ranges from 5 to 8 steps.
+For 3 integers, the result ranges from 1 to 2 steps.
+
+I tried regression using the maximum number of steps obtained above (for 3, 4, 5 and 9 integers) and the linear equation ("max_steps = 5.108n - 12.8", where n = number of integers to sort, rSquared of 0.999) gives 2541 steps for 500 integers.
+
+I am wondering if a better algorithm really exists and if the result is possible to be as low as 2541 for 500 integers. Wrote out a few cases by hand for 4 integers or 5 integers but could not figure out the lowest possible estimated number of steps or time complexity.
