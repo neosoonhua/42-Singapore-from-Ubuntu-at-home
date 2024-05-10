@@ -52,6 +52,7 @@ static int	get_word(char **strs, char *s, char c)
 	while (++i < len)
 		strs[0][i] = s[i];
 	strs[0][i] = 0;
+	free(*strs);
 	return (1);
 }
 

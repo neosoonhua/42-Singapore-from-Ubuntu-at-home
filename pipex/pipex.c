@@ -63,10 +63,18 @@ void	child_1(int *in_out, int *pipefd, char **args, char **poss_paths, char **ar
 
 char	**get_poss_paths(char **envp)
 {
+	char	*substr;
+	char	**split;
+
 	while (*envp)
 	{
 		if (ft_strnstr(*envp, "PATH=", 5))
-			return (ft_split(ft_substr(*envp, 5, ft_strlen(*envp) - 5), ':'));
+		{
+			substr = ft_substr(*envp, 5, ft_strlen(*envp) - 5);
+			split = ft_split(substr, ':');
+			free(substr);
+			return (split);
+		}
 		**(envp)++;
 	}
 	return (NULL);
@@ -99,5 +107,6 @@ int	main(int argc, char **argv, char **envp)
 	close(pipefd[0]);
 	close(pipefd[1]);
 	waitpid(-1, NULL, 0);
+	free (poss_paths);
 	return (1);
 }
