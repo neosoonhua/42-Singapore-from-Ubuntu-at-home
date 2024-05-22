@@ -73,6 +73,7 @@ char	**get_poss_paths(char **envp)
 			substr = ft_substr(*envp, 5, ft_strlen(*envp) - 5);
 			split = ft_split(substr, ':');
 			free(substr);
+			substr = NULL;
 			return (split);
 		}
 		**(envp)++;
@@ -87,6 +88,7 @@ int	main(int argc, char **argv, char **envp)
 	pid_t	pid[2];
 	char	**poss_paths;
 	char	**args;
+	char	**temp;
 
 	poss_paths = get_poss_paths(envp);
 	if (argc != 5)
@@ -107,6 +109,12 @@ int	main(int argc, char **argv, char **envp)
 	close(pipefd[0]);
 	close(pipefd[1]);
 	waitpid(-1, NULL, 0);
-	free (poss_paths);
+	temp = poss_paths;
+	while (*poss_paths)
+	{
+		free(*poss_paths);
+		*(poss_paths++);
+	}
+	free(temp);
 	return (1);
 }
