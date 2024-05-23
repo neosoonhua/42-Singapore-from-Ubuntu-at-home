@@ -14,7 +14,7 @@ NAME = pipex
 LIBFT_PATH = ./libft
 LIBFT = $(LIBFT_PATH)/libft.a
 
-SRC = pipex.c 
+SRC = pipex.c util.c
 
 OBJ = $(SRC:.c=.o)
 

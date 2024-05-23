@@ -1,25 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   util.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/18 19:36:52 by sneo              #+#    #+#             */
-/*   Updated: 2024/01/18 19:37:00 by sneo             ###   ########.fr       */
+/*   Created: 2024/05/23 08:57:22 by sneo              #+#    #+#             */
+/*   Updated: 2024/05/23 08:57:27 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#include "pipex.h"
 
-# include "./libft/libft.h"
-# include <unistd.h>
-# include <fcntl.h>
-# include <stdlib.h>
-# include <stdio.h>
-# include <sys/wait.h>
+void	free_2d_array(char **array)
+{
+	char	**temp;
 
-void	free_2d_array(char **array);
-
-#endif
+	temp = array;
+	while (*array)
+	{
+		free(*array);
+		*(array++);
+	}
+	free(temp);
+}
