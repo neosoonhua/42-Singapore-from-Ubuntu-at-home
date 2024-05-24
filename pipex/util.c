@@ -15,12 +15,14 @@
 void	free_2d_array(char **array)
 {
 	char	**temp;
+	int		i;
 
 	temp = array;
-	while (*array)
+	i = 0;
+	while (array[i])
 	{
-		free(*array);
-		*(array++);
+		free(array[i]);
+		i++;
 	}
 	free(temp);
 }
