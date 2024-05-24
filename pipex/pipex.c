@@ -15,14 +15,16 @@
 char	*get_path(char **args, char **poss_paths)
 {
 	char	*path;
+	int		i;
 
-	while (*poss_paths)
+	i = 0;
+	while (poss_paths[i])
 	{
-		path = ft_strjoin(*poss_paths, "/");
+		path = ft_strjoin(poss_paths[i], "/");
 		path = ft_strjoin(path, args[0]);
 		if (access(path, X_OK) != -1)
 			return (path);
-		**(poss_paths)++;
+		i++;
 	}
 	return (NULL);
 }
@@ -67,18 +69,20 @@ char	**get_poss_paths(char **envp)
 {
 	char	*substr;
 	char	**split;
+	int		i;
 
-	while (*envp)
+	i = 0;
+	while (envp[i])
 	{
-		if (ft_strnstr(*envp, "PATH=", 5))
+		if (ft_strnstr(envp[i], "PATH=", 5))
 		{
-			substr = ft_substr(*envp, 5, ft_strlen(*envp) - 5);
+			substr = ft_substr(envp[i], 5, ft_strlen(envp[i]) - 5);
 			split = ft_split(substr, ':');
 			free(substr);
 			substr = NULL;
 			return (split);
 		}
-		**(envp)++;
+		i++;
 	}
 	return (NULL);
 }
@@ -92,7 +96,10 @@ int	main(int argc, char **argv, char **envp)
 
 	poss_paths = get_poss_paths(envp);
 	if (argc != 5)
+	{
+		free_2d_array(poss_paths);
 		return (write(1, "Number of arguments should be 4.", 32));
+	}
 	in_out[0] = open(argv[1], O_RDONLY);
 	in_out[1] = open(argv[argc - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
 	pipe(pipefd);
