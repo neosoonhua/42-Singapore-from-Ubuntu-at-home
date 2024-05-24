@@ -19,7 +19,7 @@ SRC = pipex.c util.c
 OBJ = $(SRC:.c=.o)
 
 CC = cc
-CFLAGS = -g #-Wall -Wextra -Werror #-fsanitize=address #-static-libasan #-lasan
+CFLAGS = -g -Wall -Wextra -Werror #-fsanitize=address #-static-libasan #-lasan
 
 all: $(NAME) 
 
