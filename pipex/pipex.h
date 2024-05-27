@@ -20,6 +20,17 @@
 # include <stdio.h>
 # include <sys/wait.h>
 
-void	free_2d_array(char **array);
+typedef struct stack {
+	int		*io;
+	int		*pf;
+}	t_s;
+
+typedef t_s*	t_p;
+
+void	free_many(char *arr1, char **arr2, char **arr3);
+int		check_argc(int argc, char **poss_paths, t_p p);
+int		close_pipe_return(int *pipefd);
+t_p		construct(void);
+void	free_p_many(t_p a, char *arr1, char **arr2, char **arr3);
 
 #endif

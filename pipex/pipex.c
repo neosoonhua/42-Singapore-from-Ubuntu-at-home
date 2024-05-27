@@ -12,59 +12,6 @@
 
 #include "pipex.h"
 
-char	*get_path(char **args, char **poss_paths)
-{
-	char	*path;
-	int		i;
-
-	i = 0;
-	while (poss_paths[i])
-	{
-		path = ft_strjoin(poss_paths[i], "/");
-		path = ft_strjoin(path, args[0]);
-		if (access(path, X_OK) != -1)
-			return (path);
-		i++;
-	}
-	return (NULL);
-}
-
-void	child_0(int *in_out, int *pipefd, char **poss_paths, char **argv)
-{
-	char	*path;
-	char	**args;
-
-	dup2(in_out[0], 0);
-	dup2(pipefd[1], 1);
-	close(pipefd[0]);
-	args = ft_split(argv[2], ' ');
-	path = get_path(args, poss_paths);
-	if (execve((const char *)path, args, NULL) == -1)
-	{
-		write(1, "Could not execute child_0 execve\n", 33);
-		exit(EXIT_SUCCESS);
-	}
-	exit(EXIT_FAILURE);
-}
-
-void	child_1(int *in_out, int *pipefd, char **poss_paths, char **argv)
-{
-	char	*path;
-	char	**args;
-
-	dup2(in_out[1], 1);
-	dup2(pipefd[0], 0);
-	close(pipefd[1]);
-	args = ft_split(argv[3], ' ');
-	path = get_path(args, poss_paths);
-	if (execve((const char *)path, args, NULL) == -1)
-	{
-		write(1, "Could not execute child_1 execve\n", 33);
-		exit(EXIT_SUCCESS);
-	}
-	exit(EXIT_FAILURE);
-}
-
 char	**get_poss_paths(char **envp)
 {
 	char	*substr;
@@ -79,7 +26,6 @@ char	**get_poss_paths(char **envp)
 			substr = ft_substr(envp[i], 5, ft_strlen(envp[i]) - 5);
 			split = ft_split(substr, ':');
 			free(substr);
-			substr = NULL;
 			return (split);
 		}
 		i++;
@@ -87,34 +33,104 @@ char	**get_poss_paths(char **envp)
 	return (NULL);
 }
 
+char	*get_path(char **args, char **poss_paths)
+{
+	char	*temp_path;
+	char	*path;
+
+	if (access(args[0], X_OK) != -1)
+		return (ft_strjoin("", args[0]));
+	else
+	{
+		while (*poss_paths)
+		{
+			temp_path = ft_strjoin(*poss_paths++, "/");
+			path = ft_strjoin(temp_path, args[0]);
+			free(temp_path);
+			if (access(path, X_OK) != -1)
+				return (path);
+			else
+				free(path);
+		}
+	}
+	return (NULL);
+}
+
+int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
+{
+	char	*path;
+	char	**args;
+
+	args = ft_split(argv[2], ' ');
+	path = get_path(args, poss_paths);
+	if (!path)
+	{
+		ft_printf(1, "%s: command not found\n", args[0]);
+		free_many(path, args, NULL);
+		return (0);
+	}
+	dup2(p->io[0], 0);
+	dup2(p->pf[1], 1);
+	close(p->pf[0]);
+	if (execve((const char *)path, args, envp) == -1)
+	{
+		free_many(path, args, NULL);
+		write(1, "Could not execute child_0 execve\n", 33);
+		return (0);
+	}
+	free_many(path, args, NULL);
+	return (1);
+}
+
+int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
+{
+	char	*path;
+	char	**args;
+
+	args = ft_split(argv[3], ' ');
+	path = get_path(args, poss_paths);
+	if (!path)
+	{
+		ft_printf(1, "%s: command not found\n", args[0]);
+		free_many(path, args, NULL);
+		return (0);
+	}
+	dup2(p->io[1], 1);
+	dup2(p->pf[0], 0);
+	close(p->pf[1]);
+	if (execve((const char *)path, args, envp) == -1)
+	{
+		free_many(path, args, NULL);
+		write(1, "Could not execute child_1 execve\n", 33);
+		return (0);
+	}
+	free_many(path, args, NULL);
+	return (1);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
-	int		in_out[2];
-	int		pipefd[2];
+	t_p		p;
 	pid_t	pid[2];
 	char	**poss_paths;
 
+	p = construct();
 	poss_paths = get_poss_paths(envp);
-	if (argc != 5)
-	{
-		free_2d_array(poss_paths);
-		return (write(1, "Number of arguments should be 4.", 32));
-	}
-	in_out[0] = open(argv[1], O_RDONLY);
-	in_out[1] = open(argv[argc - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
-	pipe(pipefd);
+	if (check_argc(argc, poss_paths, p))
+		return (0);
+	p->io[0] = open(argv[1], O_RDONLY);
+	p->io[1] = open(argv[argc - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
+	pipe(p->pf);
 	pid[0] = fork();
 	if (pid[0] < 0)
 		return (0);
-	if (!pid[0])
-		child_0(in_out, pipefd, poss_paths, argv);
+	if (!pid[0] && !child_0(p, poss_paths, argv, envp))
+		close_pipe_return(p->pf);
 	pid[1] = fork();
 	if (pid[1] < 0)
 		return (0);
-	if (!pid[1])
-		child_1(in_out, pipefd, poss_paths, argv);
-	close(pipefd[0]);
-	close(pipefd[1]);
-	free_2d_array(poss_paths);
-	return (1);
+	if (!pid[1] && !child_1(p, poss_paths, argv, envp))
+		close_pipe_return(p->pf);
+	close_pipe_return(p->pf);
+	free_p_many(p, NULL, poss_paths, NULL);
 }
