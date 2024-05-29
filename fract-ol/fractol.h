@@ -15,8 +15,15 @@
 
 # include "./libft/libft.h"
 # include <stdlib.h>
-# include <./minilibx-linux/mlx.h>
+# include "./minilibx-linux/mlx.h"
+# include "./minilibx-linux/mlx_int.h"
 
-
+typedef struct s_data {
+	void	*i;
+	char	*a;
+	int		b;
+	int		l;
+	int		e;
+}	t_data;
 
 #endif
