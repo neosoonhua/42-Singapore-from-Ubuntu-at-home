@@ -38,7 +38,7 @@ int	check_argc(int argc, char **poss_paths, t_p p)
 {
 	if (argc != 5)
 	{
-		free_p_many(p, NULL, poss_paths, NULL);
+		free_p_and_many(p, NULL, poss_paths, NULL);
 		return (write(1, "Number of arguments should be 4.\n", 33));
 	}
 	return (0);
@@ -63,7 +63,7 @@ t_p	construct(void)
 	return (p);
 }
 
-void	free_p_many(t_p a, char *arr1, char **arr2, char **arr3)
+void	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3)
 {
 	if (a)
 	{

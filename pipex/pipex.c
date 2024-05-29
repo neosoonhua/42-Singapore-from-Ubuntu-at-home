@@ -38,6 +38,7 @@ char	*get_path(char **args, char **poss_paths)
 	char	*temp_path;
 	char	*path;
 
+	// if (access(args[0], F_OK) != -1 || access(args[0], X_OK) != -1)
 	if (access(args[0], X_OK) != -1)
 		return (ft_strjoin("", args[0]));
 	else
@@ -47,6 +48,7 @@ char	*get_path(char **args, char **poss_paths)
 			temp_path = ft_strjoin(*poss_paths++, "/");
 			path = ft_strjoin(temp_path, args[0]);
 			free(temp_path);
+			// if (access(path, F_OK) != -1 || access(path, X_OK) != -1)
 			if (access(path, X_OK) != -1)
 				return (path);
 			else
@@ -67,7 +69,7 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	{
 		ft_printf(1, "%s: command not found\n", args[0]);
 		free_many(path, args, NULL);
-		return (0);
+		exit (0);
 	}
 	dup2(p->io[0], 0);
 	dup2(p->pf[1], 1);
@@ -132,5 +134,5 @@ int	main(int argc, char **argv, char **envp)
 	if (!pid[1] && !child_1(p, poss_paths, argv, envp))
 		close_pipe_return(p->pf);
 	close_pipe_return(p->pf);
-	free_p_many(p, NULL, poss_paths, NULL);
+	free_p_and_many(p, NULL, poss_paths, NULL);
 }
