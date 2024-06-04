@@ -28,19 +28,63 @@ void	pixel_put(t_data *d, int x, int y, int color)
 	*(unsigned int*)dst = color;
 }
 
-void	draw_straight_line(t_data *data_p, int x_max, int y_max)
+int	rev(double a, double max)
+{
+	double	mid;
+
+	mid = max/2;
+	return ((int)((a * (max - mid) + mid)));
+}
+
+void	mandelbrot(t_data *data_p, double cr, double ci)
+{
+	int		n;	
+	double	zr;
+	double	zi;
+	double	temp;
+
+	n = 0;
+	zr = 0;
+	zi = 0;
+	while (n < MAX_ITER)
+	{
+		if (zr * zr + zi * zi > 680)
+			break ;
+		temp = zr;
+		zr = zr * zr - zi * zi + cr;
+		zi = 2 * temp * zi + ci;
+		n++;
+	}
+	if (n == MAX_ITER)
+		pixel_put(data_p, rev(cr, WIDTH), rev(ci, HEIGHT), 0x00ff0000);
+	else
+		pixel_put(data_p, rev(cr, WIDTH), rev(ci, HEIGHT), 0x0000ff00);
+}
+
+double	offset(double a, double max)
+{
+	double	mid;
+
+	mid = max/2;
+	return ((double)((a - mid)/(max - mid)));
+}
+
+void	draw(t_data *data_p)
 {
 	int	x;
 	int	y;
+	double x_offseted;
+	double y_offseted;
 
 	x = 0;
-	while (x <= x_max)
+	while (x <= WIDTH)
 	{
 		y = 0;
-		while (y <= y_max)
+		while (y <= HEIGHT)
 		{
-			if (x + y == 50)
-				pixel_put(data_p, x, y, 0x00ff0000);
+			x_offseted = offset((double)x, (double)WIDTH);
+			y_offseted = offset((double)y, (double)HEIGHT);
+			mandelbrot(data_p, x_offseted, y_offseted);
 			y++;
 		}
 		x++;
@@ -55,15 +99,12 @@ int	main(void)
 	t_data	im;
 
 	mlx = mlx_init();
-	// if (!mlx)
-	// {
-	// 	//Handle the error.
-	// 	return (1);
-	// }
-	win = mlx_new_window(mlx, 800, 400, "First window");
-	im.i = mlx_new_image(mlx, 800, 400);
+	if (!mlx)
+		return (1);
+	win = mlx_new_window(mlx, WIDTH, HEIGHT, "First window");
+	im.i = mlx_new_image(mlx, WIDTH, HEIGHT);
 	im.a = mlx_get_data_addr(im.i, &im.b, &im.l, &im.e);
-	draw_straight_line(&im, 90, 90);
+	draw(&im);
 	mlx_put_image_to_window(mlx, win, im.i, 0, 0);
 	mlx_loop(mlx);
 	// mlx_key_hook(win, handle_input, NULL);

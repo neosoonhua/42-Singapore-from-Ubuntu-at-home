@@ -15,8 +15,12 @@
 
 # include "./libft/libft.h"
 # include <stdlib.h>
-# include "./minilibx-linux/mlx.h"
-# include "./minilibx-linux/mlx_int.h"
+# include "./mlx/mlx.h"
+# include "./mlx/mlx_int.h"
+
+# define MAX_ITER 77
+# define HEIGHT 400
+# define WIDTH 800
 
 typedef struct s_data {
 	void	*i;
@@ -25,5 +29,10 @@ typedef struct s_data {
 	int		l;
 	int		e;
 }	t_data;
+
+typedef struct s_complex {
+	double	r;
+	double	i;
+}	t_com;
 
 #endif
