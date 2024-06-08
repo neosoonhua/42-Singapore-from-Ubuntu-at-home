@@ -92,12 +92,25 @@ void	draw(t_data *data_p)
 	return ;
 }
 
-int	main(void)
+int	print_help(void)
+{
+	ft_printf("How to use:\n");
+	ft_printf("./fractol mandelbrot\n");
+	ft_printf("or\n");
+	ft_printf("./fractol julia 0.3 0.7\n");
+	ft_printf("where '0.3' and '0.7' can be replaced by any numbers.\n");
+	return (0);
+}
+
+int	main(int argc, char **argv)
 {
 	void	*mlx;
 	void	*win;
 	t_data	im;
 
+	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
+		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
+			return (print_help());
 	mlx = mlx_init();
 	if (!mlx)
 		return (1);
@@ -110,5 +123,5 @@ int	main(void)
 	// mlx_key_hook(win, handle_input, NULL);
 	// mlx_destroy_display(mlx);
 	// free(mlx);
-	return (0);
+	return (1);
 }
