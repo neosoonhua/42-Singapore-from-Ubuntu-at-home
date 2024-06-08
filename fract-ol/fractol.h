@@ -18,9 +18,9 @@
 # include "./mlx/mlx.h"
 # include "./mlx/mlx_int.h"
 
-# define MAX_ITER 77
-# define HEIGHT 400
-# define WIDTH 800
+# define MAX_ITER 4096
+# define H 400
+# define W 800
 
 typedef struct s_data {
 	void	*i;
