@@ -25,6 +25,7 @@ typedef struct s_list
 	struct s_list	*next;
 }					t_list;
 
+char	*last_word(const char *str, char sep);
 void	error(void);
 int		ft_printf(int fd, const char *s, ...);
 t_list	*ft_lstnew(void *content);

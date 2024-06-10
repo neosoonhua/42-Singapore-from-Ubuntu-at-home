@@ -12,43 +12,44 @@
 
 #include "pipex.h"
 
-void	free_many(char *arr1, char **arr2, char **arr3)
+int	free_many(char *arr1, char **arr2, char **arr3)
 {
-	char	**temp;
+	char	**temp2;
+	char	**temp3;
 
 	if (arr1)
 		free(arr1);
 	if (arr2)
 	{
-		temp = arr2;
+		temp2 = arr2;
 		while (*arr2)
 			free(*arr2++);
-		free(temp);
+		free(temp2);
 	}
 	if (arr3)
 	{
-		temp = arr3;
+		temp3 = arr3;
 		while (*arr3)
 			free(*arr3++);
-		free(temp);
+		free(temp3);
 	}
+	return (0);
 }
 
-int	check_argc(int argc, char **poss_paths, t_p p)
+int	check_argc(int argc)
 {
 	if (argc != 5)
 	{
-		free_p_and_many(p, NULL, poss_paths, NULL);
 		return (write(1, "Number of arguments should be 4.\n", 33));
 	}
 	return (0);
 }
 
-int	close_pipe_return(int *pipefd)
+void	close_pipe_return(int *pipefd)
 {
 	close(pipefd[0]);
 	close(pipefd[1]);
-	return (0);
+	return ;
 }
 
 t_p	construct(void)
@@ -63,7 +64,7 @@ t_p	construct(void)
 	return (p);
 }
 
-void	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3)
+int	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3)
 {
 	if (a)
 	{
@@ -75,4 +76,5 @@ void	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3)
 		a = NULL;
 	}
 	free_many(arr1, arr2, arr3);
+	return (0);
 }

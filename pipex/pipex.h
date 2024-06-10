@@ -27,10 +27,14 @@ typedef struct stack {
 
 typedef t_s*	t_p;
 
-void	free_many(char *arr1, char **arr2, char **arr3);
-int		check_argc(int argc, char **poss_paths, t_p p);
-int		close_pipe_return(int *pipefd);
+void	in_out(t_p p, char **poss_paths, char **argv, char **envp);
+void	outfile(t_p p, char **poss_paths, char **argv);
+void	infile(t_p p, char **poss_paths, char **argv, char **envp);
+char	*get_shell(char **envp);
+int		free_many(char *arr1, char **arr2, char **arr3);
+int		check_argc(int argc);
+void	close_pipe_return(int *pipefd);
 t_p		construct(void);
-void	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3);
+int		free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3);
 
 #endif

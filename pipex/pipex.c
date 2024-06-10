@@ -38,7 +38,6 @@ char	*get_path(char **args, char **poss_paths)
 	char	*temp_path;
 	char	*path;
 
-	// if (access(args[0], F_OK) != -1 || access(args[0], X_OK) != -1)
 	if (access(args[0], X_OK) != -1)
 		return (ft_strjoin("", args[0]));
 	else
@@ -48,7 +47,6 @@ char	*get_path(char **args, char **poss_paths)
 			temp_path = ft_strjoin(*poss_paths++, "/");
 			path = ft_strjoin(temp_path, args[0]);
 			free(temp_path);
-			// if (access(path, F_OK) != -1 || access(path, X_OK) != -1)
 			if (access(path, X_OK) != -1)
 				return (path);
 			else
@@ -67,8 +65,12 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	path = get_path(args, poss_paths);
 	if (!path)
 	{
-		ft_printf(1, "%s: command not found\n", args[0]);
-		free_many(path, args, NULL);
+		ft_printf(1, "%s: ", get_shell(envp));
+		if (ft_strnstr(argv[2], "/", ft_strlen(argv[2])))
+			ft_printf(1, "no such file or directory: %s\n", args[0]);
+		else
+			ft_printf(1, "command not found: %s\n", args[0]);
+		free_p_and_many(p, path, args, poss_paths);
 		exit (0);
 	}
 	dup2(p->io[0], 0);
@@ -78,9 +80,8 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	{
 		free_many(path, args, NULL);
 		write(1, "Could not execute child_0 execve\n", 33);
-		return (0);
+		exit (0);
 	}
-	free_many(path, args, NULL);
 	return (1);
 }
 
@@ -93,9 +94,13 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	path = get_path(args, poss_paths);
 	if (!path)
 	{
-		ft_printf(1, "%s: command not found\n", args[0]);
-		free_many(path, args, NULL);
-		return (0);
+		ft_printf(1, "%s: ", get_shell(envp));
+		if (ft_strnstr(argv[3], "/", ft_strlen(argv[3])))
+			ft_printf(1, "no such file or directory: %s\n", args[0]);
+		else
+			ft_printf(1, "command not found: %s\n", args[0]);
+		free_p_and_many(p, path, args, poss_paths);
+		exit (0);
 	}
 	dup2(p->io[1], 1);
 	dup2(p->pf[0], 0);
@@ -104,9 +109,8 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	{
 		free_many(path, args, NULL);
 		write(1, "Could not execute child_1 execve\n", 33);
-		return (0);
+		exit (0);
 	}
-	free_many(path, args, NULL);
 	return (1);
 }
 
@@ -115,24 +119,26 @@ int	main(int argc, char **argv, char **envp)
 	t_p		p;
 	pid_t	pid[2];
 	char	**poss_paths;
+	int		status;
 
+	if (check_argc(argc))
+		return (0);
 	p = construct();
 	poss_paths = get_poss_paths(envp);
-	if (check_argc(argc, poss_paths, p))
-		return (0);
-	p->io[0] = open(argv[1], O_RDONLY);
-	p->io[1] = open(argv[argc - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
+	in_out(p, poss_paths, argv, envp);
 	pipe(p->pf);
 	pid[0] = fork();
 	if (pid[0] < 0)
-		return (0);
+		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[0] && !child_0(p, poss_paths, argv, envp))
 		close_pipe_return(p->pf);
 	pid[1] = fork();
 	if (pid[1] < 0)
-		return (0);
+		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[1] && !child_1(p, poss_paths, argv, envp))
 		close_pipe_return(p->pf);
 	close_pipe_return(p->pf);
-	free_p_and_many(p, NULL, poss_paths, NULL);
+	waitpid(-1, &status, 0);
+	waitpid(-1, &status, 0);
+	return (free_p_and_many(p, NULL, poss_paths, NULL));
 }
