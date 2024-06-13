@@ -16,29 +16,27 @@ LIBFT = $(LIBFT_PATH)/libft.a
 LIBMLX_PATH = ./mlx
 LIBMLX = $(LIBMLX_PATH)/libmlx_Linux.a
 
-SRC = fractol.c 
+SRC = fractol.c util.c 
 
 OBJ = $(SRC:.c=.o)
 
 CC = cc
 CFLAGS = -g #-Wall -Wextra -Werror
-MLX_FLAGS = -Lmlx -lmlx -L/usr/lib/X11 -lXext -lX11
+MLX_FLAGS = -Lmlx -lmlx -lXext -lX11
 
 all: $(NAME) 
 
-$(NAME): $(OBJ)
-		 $(CC) $(CFLAGS) -o $(NAME) $(OBJ) $(LIBFT) $(MLX_FLAGS)
-# $(NAME): $(OBJ) $(LIBFT)
-# 	$(CC) $(OBJ) -Lmlx_linux -lmlx_Linux -L/usr/lib -Imlx_linux -lXext -lX11 -lm -lz -o $(LIBFT)
+$(NAME): $(OBJ) $(LIBFT) $(LIBMLX)
+		 $(CC) $(CFLAGS) -I. -o $(NAME) $(OBJ) $(LIBFT) $(LIBMLX) $(MLX_FLAGS)
 
 $(LIBFT):
-		make re -C $(LIBFT_PATH) all bonus
+		make -C $(LIBFT_PATH) all bonus
 
 $(LIBMLX):
 		make -C $(LIBMLX_PATH) all
 
 $(OBJ): $(SRC)
-		$(CC) $(CFLAGS) -c -o $@ $< -I/usr/include -Imlx
+		$(CC) $(CFLAGS) -I. -c $(SRC) -Imlx
 
 clean:
 		make -C $(LIBFT_PATH) clean
