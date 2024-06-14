@@ -15,19 +15,21 @@
 
 # include "./libft/libft.h"
 # include <stdlib.h>
-# include "./mlx/mlx.h"
-# include "./mlx/mlx_int.h"
+# include "./minilibx-linux/mlx.h"
+# include <X11/keysym.h>
 
-# define MAX_ITER 4096
+# define MAX_ITER 96
 # define H 400
 # define W 800
 
 typedef struct s_data {
-	void	*i;
-	char	*a;
-	int		b;
-	int		l;
-	int		e;
+	void	*img;
+	char	*ad;
+	int		bpp;
+	int		line_sz;
+	int		endi;
+	void	*mlx;
+	void	*win;
 }	t_data;
 
 typedef struct s_complex {
@@ -35,6 +37,7 @@ typedef struct s_complex {
 	double	i;
 }	t_com;
 
+void	pixel_put(t_data *d, int x, int y, int color);
 void	draw(t_data *data_p);
 
 #endif

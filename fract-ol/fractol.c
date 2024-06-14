@@ -12,10 +12,19 @@
 
 #include "fractol.h"
 
-int	handle_input(int key, void *param)
+int	handle_input(int key, t_data *d)
 {
-	key++;
-	param++;
+	if (key == XK_Escape)
+	{
+		ft_printf("%d key (ESC) pressed.", key);
+		mlx_destroy_image(d->mlx, d->img);
+		mlx_destroy_window(d->mlx, d->win);
+		// mlx_loop_end(d->mlx);
+		mlx_destroy_display(d->mlx);
+		free(d->mlx);
+		exit(1);
+	}
+	ft_printf("%d key (ESC) pressed.", key);
 	return (0);
 }
 
@@ -30,40 +39,46 @@ int	print_help(void)
 	return (0);
 }
 
+int	end_fractol(t_data *mlx)
+{
+	free(mlx);
+	return (0);
+}
+
 int	main(int argc, char **argv)
 {
-	void	*mlx;
-	void	*win;
-	t_data	im;
+	t_data	d;
 
 	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
 		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
 			return (print_help());
-	mlx = mlx_init();
-	if (!mlx)
+	d.mlx = mlx_init();
+	if (!d.mlx)
 		return (1);
-	win = mlx_new_window(mlx, W, H, "First window");
-	if (!win)
+	d.win = mlx_new_window(d.mlx, W, H, "First window");
+	if (!d.win)
 	{
-		mlx_destroy_display(mlx);
-		free(mlx);
+		mlx_destroy_display(d.mlx);
+		free(d.mlx);
 		return (1);
 	}
-	im.i = mlx_new_image(mlx, W, H);
-	if (!im.a)
+	d.img = mlx_new_image(d.mlx, W, H);
+	if (!d.img)
 	{
-		mlx_destroy_display(mlx);
-		mlx_destroy_window(mlx, win);
-		free(mlx);
+		mlx_destroy_display(d.mlx);
+		mlx_destroy_window(d.mlx, d.win);
+		free(d.mlx);
 		return (1);
 	}
-	im.a = mlx_get_data_addr(im.i, &im.b, &im.l, &im.e);
-	draw(&im);
-	mlx_put_image_to_window(mlx, win, im.i, 0, 0);
-	mlx_loop(mlx);
-	mlx_key_hook(win, handle_input, NULL);
-	mlx_destroy_window(mlx, win);
-	mlx_destroy_display(mlx);
-	free(mlx);
+	d.ad = mlx_get_data_addr(d.img, &d.bpp, &d.line_sz, &d.endi);
+	draw(&d);
+	// pixel_put(&d, 5, 18, 0x00ff0000);
+	mlx_put_image_to_window(d.mlx, d.win, d.img, 0, 0);
+	// mlx_hook(d.win, 17, 0, end_fractol, &d);
+	mlx_key_hook(d.win, handle_input, &d);
+	mlx_loop(d.mlx);
+	// mlx_destroy_window(d.mlx, d.win);
+	// mlx_destroy_display(d.mlx);
+	// free(d.mlx);
 	return (1);
 }

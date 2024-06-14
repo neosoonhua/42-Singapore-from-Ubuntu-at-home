@@ -16,8 +16,8 @@ void	pixel_put(t_data *d, int x, int y, int color)
 {
 	char	*dst;
 
-	dst = d->a + (y * d->l + x * (d->b / 8));
-	*(int *)dst = color;
+	dst = d->ad + (y * d->line_sz + x * (d->bpp / 8));
+	*(unsigned int *)dst = color;
 }
 
 int	rev(double a, double max)
@@ -28,7 +28,7 @@ int	rev(double a, double max)
 	return ((int)((a * (max - mid) + mid)));
 }
 
-void	mandelbrot(t_data *data_p, double cr, double ci)
+void	mandelbrot(t_data *d, double cr, double ci)
 {
 	int		n;	
 	double	zr;
@@ -48,12 +48,12 @@ void	mandelbrot(t_data *data_p, double cr, double ci)
 		n++;
 	}
 	if (n == MAX_ITER)
-		pixel_put(data_p, rev(cr, W), rev(ci, H), 0x00000000);
+		pixel_put(d, rev(cr, W), rev(ci, H), 0x00000000);
 	else
-		pixel_put(data_p, rev(cr, W), rev(ci, H), (int)(n * 16));
+		pixel_put(d, rev(cr, W), rev(ci, H), (int)(n * 16));
 }
 
-double	offset(double a, double max)
+double	txf(double a, double max)
 {
 	double	mid;
 
@@ -61,22 +61,23 @@ double	offset(double a, double max)
 	return ((double)((a - mid) / (max - mid)));
 }
 
-void	draw(t_data *data_p)
+void	draw(t_data *d)
 {
 	int		x;
 	int		y;
-	double	x_offseted;
-	double	y_offseted;
+	double	x_txfed;
+	double	y_txfed;
 
+	mlx_clear_window(d->mlx, d->win);
 	x = 0;
-	while (x <= W)
+	while (x < W)
 	{
 		y = 0;
-		while (y <= H)
+		while (y < H)
 		{
-			x_offseted = offset((double)x, (double)W);
-			y_offseted = offset((double)y, (double)H);
-			mandelbrot(data_p, x_offseted, y_offseted);
+			x_txfed = txf((double)x, (double)W);
+			y_txfed = txf((double)y, (double)H);
+			mandelbrot(d, x_txfed, y_txfed);
 			y++;
 		}
 		x++;
