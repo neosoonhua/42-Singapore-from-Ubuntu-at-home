@@ -57,10 +57,16 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 {
 	int		n;	
 	double	temp;
+	double	zr0;
+	double	zi0;
 
 	n = 0;
+	zr0 = zr;
+	zi0 = zi;
 	while (n < MAX_ITER)
 	{
+		// printf("zr: %lf\n", zr);
+		// printf("zi: %lf\n", zi);
 		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
@@ -69,9 +75,9 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 		n++;
 	}
 	if (n == MAX_ITER)
-		pixel_put(d, inv(zr, W), inv(zi, H), 0x00000000);
+		pixel_put(d, inv(zr0, W), inv(zi0, H), 0x00000000);
 	else
-		pixel_put(d, inv(zr, W), inv(zi, H), (int)(n * 16));
+		pixel_put(d, inv(zr0, W), inv(zi0, H), (int)(n * 16));
 }
 
 double	txf(double a, double max)

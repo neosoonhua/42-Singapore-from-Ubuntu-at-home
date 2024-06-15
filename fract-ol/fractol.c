@@ -40,11 +40,11 @@ int	print_help(void)
 	return (0);
 }
 
-int	end_fractol(t_data *mlx)
-{
-	free(mlx);
-	return (0);
-}
+// int	end_fractol(t_data *mlx)
+// {
+// 	free(mlx);
+// 	return (0);
+// }
 
 int	main(int argc, char **argv)
 {
@@ -53,9 +53,6 @@ int	main(int argc, char **argv)
 	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
 		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
 			return (print_help());
-	// if (!ft_strncmp(argv[1], "julia", 5))
-	// 	printf("%lf\n", ft_atod(argv[2])); //To delete
-	// 	printf("%lf\n", ft_atod(argv[3])); //To delete
 	d.mlx = mlx_init();
 	if (!d.mlx)
 		return (1);
@@ -76,7 +73,6 @@ int	main(int argc, char **argv)
 	}
 	d.ad = mlx_get_data_addr(d.img, &d.bpp, &d.line_sz, &d.endi);
 	draw(&d, argv);
-	// pixel_put(&d, 5, 18, 0x00ff0000);
 	mlx_put_image_to_window(d.mlx, d.win, d.img, 0, 0);
 	// mlx_hook(d.win, 17, 0, end_fractol, &d);
 	mlx_key_hook(d.win, handle_input, &d);

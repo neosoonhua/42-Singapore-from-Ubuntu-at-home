@@ -32,15 +32,10 @@ double	ft_atod(const char *str)
 	}
 	while (str[i])
 	{
-		// ft_printf("i: %d\n", i);
-		// ft_printf("dec_pt_at: %d\n", dec_pt_at);
 		if (!ft_isdigit(str[i]) && str[i] != '.')
 			error();
 		else if (str[i] == '.')
-		{
 			dec_pt_at = i++;
-			// ft_printf("dec_pt_at is changed to: %d\n", dec_pt_at);
-		}
 		else if (dec_pt_at == -1)
 			result = result * 10 + str[i++] - '0';
 		else if (dec_pt_at != -1)

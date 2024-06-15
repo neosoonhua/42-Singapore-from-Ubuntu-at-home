@@ -19,7 +19,7 @@
 # include <X11/keysym.h>
 # include <math.h>
 
-# define MAX_ITER 96
+# define MAX_ITER 47
 # define H 400
 # define W 800
 
