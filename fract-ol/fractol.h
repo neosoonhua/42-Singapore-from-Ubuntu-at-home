@@ -17,6 +17,7 @@
 # include <stdlib.h>
 # include "./minilibx-linux/mlx.h"
 # include <X11/keysym.h>
+# include <math.h>
 
 # define MAX_ITER 96
 # define H 400
@@ -37,7 +38,7 @@ typedef struct s_complex {
 	double	i;
 }	t_com;
 
-void	pixel_put(t_data *d, int x, int y, int color);
-void	draw(t_data *data_p);
+double	ft_atod(const char *str);
+void	draw(t_data *data_p, char **argv);
 
 #endif

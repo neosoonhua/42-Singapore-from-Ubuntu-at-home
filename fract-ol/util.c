@@ -20,7 +20,7 @@ void	pixel_put(t_data *d, int x, int y, int color)
 	*(unsigned int *)dst = color;
 }
 
-int	rev(double a, double max)
+int	inv(double a, double max)
 {
 	double	mid;
 
@@ -40,7 +40,7 @@ void	mandelbrot(t_data *d, double cr, double ci)
 	zi = 0;
 	while (n < MAX_ITER)
 	{
-		if (zr * zr + zi * zi > 680)
+		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
 		zr = zr * zr - zi * zi + cr;
@@ -48,9 +48,30 @@ void	mandelbrot(t_data *d, double cr, double ci)
 		n++;
 	}
 	if (n == MAX_ITER)
-		pixel_put(d, rev(cr, W), rev(ci, H), 0x00000000);
+		pixel_put(d, inv(cr, W), inv(ci, H), 0x00000000);
 	else
-		pixel_put(d, rev(cr, W), rev(ci, H), (int)(n * 16));
+		pixel_put(d, inv(cr, W), inv(ci, H), (int)(n * 16));
+}
+
+void	julia(t_data *d, double zr, double zi, char **argv)
+{
+	int		n;	
+	double	temp;
+
+	n = 0;
+	while (n < MAX_ITER)
+	{
+		if (zr * zr + zi * zi > 4)
+			break ;
+		temp = zr;
+		zr = zr * zr - zi * zi + ft_atod(argv[2]);
+		zi = 2 * temp * zi + ft_atod(argv[3]);
+		n++;
+	}
+	if (n == MAX_ITER)
+		pixel_put(d, inv(zr, W), inv(zi, H), 0x00000000);
+	else
+		pixel_put(d, inv(zr, W), inv(zi, H), (int)(n * 16));
 }
 
 double	txf(double a, double max)
@@ -61,7 +82,7 @@ double	txf(double a, double max)
 	return ((double)((a - mid) / (max - mid)));
 }
 
-void	draw(t_data *d)
+void	draw(t_data *d, char **argv)
 {
 	int		x;
 	int		y;
@@ -77,7 +98,10 @@ void	draw(t_data *d)
 		{
 			x_txfed = txf((double)x, (double)W);
 			y_txfed = txf((double)y, (double)H);
-			mandelbrot(d, x_txfed, y_txfed);
+			if (!ft_strncmp(argv[1], "mandelbrot", 10))
+				mandelbrot(d, x_txfed, y_txfed);
+			else if (!ft_strncmp(argv[1], "julia", 5))
+				julia(d, x_txfed, y_txfed, argv);
 			y++;
 		}
 		x++;
