@@ -23,6 +23,8 @@
 # define H 400
 # define W 800
 
+# define MOUSE_BTN 1
+
 typedef struct s_data {
 	void	*img;
 	char	*ad;
@@ -38,6 +40,8 @@ typedef struct s_complex {
 	double	i;
 }	t_com;
 
+void	pixel_put(t_data *d, int x, int y, int color);
+int	free_many(char *arr1, char **arr2, char **arr3);
 double	ft_atod(const char *str);
 void	draw(t_data *data_p, char **argv);
 

@@ -16,7 +16,7 @@ LIBFT = $(LIBFT_PATH)/libft.a
 LIBMLX_PATH = ./minilibx-linux
 LIBMLX = $(LIBMLX_PATH)/libmlx_Linux.a
 
-SRC = fractol.c util.c ft_atod.c
+SRC = fractol.c util.c ft_atod.c free.c
 
 OBJ = $(SRC:.c=.o)
 

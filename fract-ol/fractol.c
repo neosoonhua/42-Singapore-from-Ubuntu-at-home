@@ -13,7 +13,7 @@
 #include "fractol.h"
 #include <stdio.h> //To delete
 
-int	handle_input(int key, t_data *d)
+int	key(int key, t_data *d)
 {
 	if (key == XK_Escape)
 	{
@@ -25,7 +25,21 @@ int	handle_input(int key, t_data *d)
 		free(d->mlx);
 		exit(1);
 	}
-	ft_printf("%d key (ESC) pressed.", key);
+	return (0);
+}
+
+int	mouse(int key, int x, int y, t_data *d)
+{
+	char	**split;
+
+	if (key == MOUSE_BTN)
+	{
+		mlx_clear_window(d->mlx, d->win);
+		split = ft_split("./fractol julia -0.65 1.02", ' ');
+		draw(d, split); //Not working.
+		free_many(NULL, split, NULL);
+		mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
+	}
 	return (0);
 }
 
@@ -35,7 +49,7 @@ int	print_help(void)
 	ft_printf("-------------------------------------------\n");
 	ft_printf("./fractol mandelbrot\n");
 	ft_printf("or\n");
-	ft_printf("./fractol julia -0.3 0.7\n");
+	ft_printf("anything julia -0.3 0.7\n");
 	ft_printf("where '-0.3' and '0.7' can be replaced by any numbers between 10 and -10 and up to 5 decimal places.\n");
 	return (0);
 }
@@ -73,9 +87,9 @@ int	main(int argc, char **argv)
 	}
 	d.ad = mlx_get_data_addr(d.img, &d.bpp, &d.line_sz, &d.endi);
 	draw(&d, argv);
-	mlx_put_image_to_window(d.mlx, d.win, d.img, 0, 0);
 	// mlx_hook(d.win, 17, 0, end_fractol, &d);
-	mlx_key_hook(d.win, handle_input, &d);
+	mlx_key_hook(d.win, key, &d);
+	mlx_mouse_hook(d.win, mouse, &d);
 	mlx_loop(d.mlx);
 	// mlx_destroy_window(d.mlx, d.win);
 	// mlx_destroy_display(d.mlx);

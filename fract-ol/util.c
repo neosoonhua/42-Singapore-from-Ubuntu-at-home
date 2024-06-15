@@ -65,8 +65,6 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 	zi0 = zi;
 	while (n < MAX_ITER)
 	{
-		// printf("zr: %lf\n", zr);
-		// printf("zi: %lf\n", zi);
 		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
@@ -112,5 +110,6 @@ void	draw(t_data *d, char **argv)
 		}
 		x++;
 	}
+	mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
 	return ;
 }
