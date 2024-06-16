@@ -40,9 +40,9 @@ typedef struct s_complex {
 	double	i;
 }	t_com;
 
-void	pixel_put(t_data *d, int x, int y, int color);
-int	free_many(char *arr1, char **arr2, char **arr3);
-double	ft_atod(const char *str);
+// void	pixel_put(t_data *d, int x, int y, int color);
+int		print_help();
+int		free_many(char *arr1, char **arr2, char **arr3);
 void	draw(t_data *data_p, char **argv);
 
 #endif

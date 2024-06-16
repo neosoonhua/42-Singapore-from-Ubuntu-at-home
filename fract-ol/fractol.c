@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "fractol.h"
-#include <stdio.h> //To delete
 
 int	key(int key, t_data *d)
 {
@@ -35,7 +34,7 @@ int	mouse(int key, int x, int y, t_data *d)
 	if (key == MOUSE_BTN)
 	{
 		mlx_clear_window(d->mlx, d->win);
-		split = ft_split("./fractol julia -0.65 1.02", ' ');
+		split = ft_split("./fractol julia -65000 102000", ' ');
 		draw(d, split); //Not working.
 		free_many(NULL, split, NULL);
 		mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
@@ -49,8 +48,9 @@ int	print_help(void)
 	ft_printf("-------------------------------------------\n");
 	ft_printf("./fractol mandelbrot\n");
 	ft_printf("or\n");
-	ft_printf("anything julia -0.3 0.7\n");
-	ft_printf("where '-0.3' and '0.7' can be replaced by any numbers between 10 and -10 and up to 5 decimal places.\n");
+	ft_printf("./fractol julia -3 17\n");
+	ft_printf("where '-3' and '17' can be replaced by any integers");
+	ft_printf(" between 200000 and -200000.\n");
 	return (0);
 }
 

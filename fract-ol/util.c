@@ -68,8 +68,8 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
-		zr = zr * zr - zi * zi + ft_atod(argv[2]);
-		zi = 2 * temp * zi + ft_atod(argv[3]);
+		zr = zr * zr - zi * zi + (double)ft_atoi(argv[2]) / 100000;
+		zi = 2 * temp * zi + (double)ft_atoi(argv[3]) / 100000;
 		n++;
 	}
 	if (n == MAX_ITER)
