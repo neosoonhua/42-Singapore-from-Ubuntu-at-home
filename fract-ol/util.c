@@ -22,9 +22,9 @@ void	pixel_put(t_data *d, int x, int y, int color)
 
 int	inv(double a, double max, t_data *d, char x_or_y)
 {
-	double range;
-	double low;
-	double high;
+	double	range;
+	double	low;
+	double	high;
 
 	if (x_or_y == 'x')
 	{
@@ -42,9 +42,9 @@ int	inv(double a, double max, t_data *d, char x_or_y)
 
 double	txf(double a, double max, t_data *d, char x_or_y)
 {
-	double range;
-	double low;
-	double high;
+	double	range;
+	double	low;
+	double	high;
 
 	if (x_or_y == 'x')
 	{
@@ -117,23 +117,8 @@ void	draw(t_data *d, char **argv)
 	double	x_txfed;
 	double	y_txfed;
 
+	d->argv = argv;
 	mlx_clear_window(d->mlx, d->win);
-	if (!ft_strncmp(argv[1], "mandelbrot", ft_strlen(argv[1])))
-	{
-		d->frac = MANDELBROT;
-		d->xl = -2;
-		d->xh = 1;
-		d->yl = -1.5;
-		d->yh = 1.5;
-	}
-	else if (!ft_strncmp(argv[1], "julia", ft_strlen(argv[1])))
-	{
-		d->frac = JULIA;
-		d->xl = -2;
-		d->xh = 2;
-		d->yl = -2;
-		d->yh = 2;
-	}
 	x = 0;
 	while (x < W)
 	{
@@ -145,7 +130,7 @@ void	draw(t_data *d, char **argv)
 			if (d->frac == MANDELBROT)
 				mandelbrot(d, x_txfed, y_txfed);
 			else if (d->frac == JULIA)
-				julia(d, x_txfed, y_txfed, argv);
+				julia(d, x_txfed, y_txfed, d->argv);
 			y++;
 		}
 		x++;

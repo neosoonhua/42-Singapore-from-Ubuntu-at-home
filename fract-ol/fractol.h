@@ -25,6 +25,7 @@
 
 // # define MOUSE_BTN 1
 # define MOUSE_WHEEL_UP 4
+# define MOUSE_WHEEL_DOWN 5
 
 # define MANDELBROT 'm'
 # define JULIA 'j'
@@ -42,6 +43,7 @@ typedef struct s_data {
 	double	xh;
 	double	yl;
 	double	yh;
+	char	**argv;
 }	t_data;
 
 // typedef struct s_complex {
@@ -50,6 +52,7 @@ typedef struct s_data {
 // }	t_com;
 
 // void	pixel_put(t_data *d, int x, int y, int color);
+void	free_t_data(t_data *a);
 double	txf(double a, double max, t_data *d, char x_or_y);
 int		print_help();
 int		free_many(char *arr1, char *arr2, char **arr3, char *arr4);

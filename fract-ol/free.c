@@ -12,20 +12,23 @@
 
 #include "fractol.h"
 
-int	free_many(char *arr1, char **arr2, char **arr3)
+void	free_t_data(t_data *a)
 {
-	char	**temp2;
+	if (a)
+	{
+		free(a);
+		a = NULL;
+	}
+}
+
+int	free_many(char *arr1, char *arr2, char **arr3, char *arr4)
+{
 	char	**temp3;
 
 	if (arr1)
 		free(arr1);
 	if (arr2)
-	{
-		temp2 = arr2;
-		while (*arr2)
-			free(*arr2++);
-		free(temp2);
-	}
+		free(arr2);
 	if (arr3)
 	{
 		temp3 = arr3;
@@ -33,5 +36,7 @@ int	free_many(char *arr1, char **arr2, char **arr3)
 			free(*arr3++);
 		free(temp3);
 	}
+	if (arr4)
+		free(arr4);
 	return (0);
 }
