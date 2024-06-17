@@ -85,7 +85,7 @@ void	mandelbrot(t_data *d, double cr, double ci)
 		pixel_put(d, inv(cr, W, d, 'x'), inv(ci, H, d, 'y'), (int)(n * 16));
 }
 
-void	julia(t_data *d, double zr, double zi, char **argv)
+void	julia(t_data *d, double zr, double zi)
 {
 	int		n;	
 	double	temp;
@@ -100,8 +100,8 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
-		zr = zr * zr - zi * zi + (double)ft_atoi(argv[2]) / 100000;
-		zi = 2 * temp * zi + (double)ft_atoi(argv[3]) / 100000;
+		zr = zr * zr - zi * zi + (double)ft_atoi(d->argv[2]) / 100000;
+		zi = 2 * temp * zi + (double)ft_atoi(d->argv[3]) / 100000;
 		n++;
 	}
 	if (n == MAX_ITER)
@@ -110,14 +110,13 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 		pixel_put(d, inv(zr0, W, d, 'x'), inv(zi0, H, d, 'y'), (int)(n * 16));
 }
 
-void	draw(t_data *d, char **argv)
+void	draw(t_data *d)
 {
 	int		x;
 	int		y;
 	double	x_txfed;
 	double	y_txfed;
 
-	d->argv = argv;
 	mlx_clear_window(d->mlx, d->win);
 	x = 0;
 	while (x < W)
@@ -130,7 +129,7 @@ void	draw(t_data *d, char **argv)
 			if (d->frac == MANDELBROT)
 				mandelbrot(d, x_txfed, y_txfed);
 			else if (d->frac == JULIA)
-				julia(d, x_txfed, y_txfed, d->argv);
+				julia(d, x_txfed, y_txfed);
 			y++;
 		}
 		x++;

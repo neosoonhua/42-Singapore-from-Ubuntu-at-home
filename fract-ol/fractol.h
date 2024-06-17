@@ -23,7 +23,7 @@
 # define H 800
 # define W 800
 
-// # define MOUSE_BTN 1
+# define MOUSE_BTN 1
 # define MOUSE_WHEEL_UP 4
 # define MOUSE_WHEEL_DOWN 5
 
@@ -56,6 +56,6 @@ void	free_t_data(t_data *a);
 double	txf(double a, double max, t_data *d, char x_or_y);
 int		print_help();
 int		free_many(char *arr1, char *arr2, char **arr3, char *arr4);
-void	draw(t_data *data_p, char **argv);
+void	draw(t_data *data_p);
 
 #endif

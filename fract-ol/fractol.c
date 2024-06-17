@@ -29,34 +29,29 @@ int	key(int key, t_data *d)
 	return (0);
 }
 
-static void zoom(t_data *d, double factor, char **argv)
+void zoom(t_data *d, double factor, int x_cent, int y_cent)
 {
-	double	x_range;
-	double	y_range;
+	double	x_range_halved_factor;
+	double	y_range_halved_factor;
+	double	halved_factor;
+	double	x_cent_txfed;
+	double	y_cent_txfed;
 
-	printf("zoom\n");
 	printf("xl: %lf\n", d->xl);
 	printf("xh: %lf\n", d->xh);
 	printf("yl: %lf\n", d->yl);
 	printf("yh: %lf\n", d->yh);
-	x_range = d->xh - d->xl;
-	y_range = d->yh - d->yl;
-	if (factor < 1)
-	{
-		d->xl = d->xl + x_range * factor * 0.5;
-		d->xh = d->xh - x_range * factor * 0.5;
-		d->yl = d->yl + y_range * factor * 0.5;
-		d->yh = d->yh - y_range * factor * 0.5;		
-	}
-	else if (factor > 1)
-	{
-		d->xl *= 2;
-		d->xh *= 2;
-		d->yl *= 2;
-		d->yh *= 2;
-	}
+	x_cent_txfed = txf((double)x_cent, (double)W, d, 'x');
+	y_cent_txfed = txf((double)y_cent, (double)H, d, 'y');
+	halved_factor = factor * 0.5;
+	x_range_halved_factor = (d->xh - d->xl) * halved_factor;
+	y_range_halved_factor = (d->yh - d->yl) * halved_factor;
+	d->xl = x_cent_txfed - x_range_halved_factor;
+	d->xh = x_cent_txfed + x_range_halved_factor;
+	d->yl = y_cent_txfed - y_range_halved_factor;
+	d->yh = y_cent_txfed + y_range_halved_factor;		
 	mlx_clear_window(d->mlx, d->win);
-	draw(d, argv);
+	draw(d);
 	mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
 }
 
@@ -65,11 +60,13 @@ int	mouse(int key, int x, int y, t_data *d)
 	printf("mouse\n");
 	if (key == MOUSE_WHEEL_UP)
 	{
-		zoom(d, 0.5, d->argv);
+		printf("zoom in\n");
+		zoom(d, 0.75, x, y);
 	}
 	if (key == MOUSE_WHEEL_DOWN)
 	{
-		zoom(d, 2, d->argv);
+		printf("zoom out\n");
+		zoom(d, 1.6, x, y);
 	}
 	return (0);
 }
@@ -111,10 +108,11 @@ void null_init(t_data *d)
 
 void values_init(t_data *d, char **argv)
 {
+	d->argv = argv;
 	if (!ft_strncmp(argv[1], "mande", 5))
 	{
 		d->frac = MANDELBROT;
-		d->xl = -2;
+		d->xl = -2.5;
 		d->xh = 2;
 		d->yl = -2;
 		d->yh = 2;
@@ -122,8 +120,8 @@ void values_init(t_data *d, char **argv)
 	else if (!ft_strncmp(argv[1], "julia", 5))
 	{
 		d->frac = JULIA;
-		d->xl = -2;
-		d->xh = 2;
+		d->xl = -2.5;
+		d->xh = 1.5;
 		d->yl = -2;
 		d->yh = 2;
 	}
@@ -134,6 +132,8 @@ int	main(int argc, char **argv)
 	t_data	*d;
 
 	d = ft_calloc(1, sizeof(t_data));
+	if (!d)
+		return (0);
 	null_init(d);
 	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
 		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
@@ -158,7 +158,7 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	d->ad = mlx_get_data_addr(d->img, &d->bpp, &d->line_sz, &d->endi);
-	draw(d, argv);
+	draw(d);
 	mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
 	// mlx_hook(d->win, 17, 0, end_fractol, d);
 	mlx_key_hook(d->win, key, d);
