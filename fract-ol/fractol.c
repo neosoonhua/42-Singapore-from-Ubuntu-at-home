@@ -27,19 +27,18 @@ int	key(int key, t_data *d)
 	return (0);
 }
 
+// void zoom(t_data *d, double factor)
+// {
+// 	cent;
+// }
+
 int	mouse(int key, int x, int y, t_data *d)
 {
-	char	**split;
-
-	if (key == MOUSE_BTN)
-	{
-		mlx_clear_window(d->mlx, d->win);
-		split = ft_split("./fractol julia -65000 102000", ' ');
-		draw(d, split); //Not working.
-		free_many(NULL, split, NULL);
-		mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
-	}
-	return (0);
+	// if (key == MOUSE_WHEEL_UP)
+	// {
+	// 	zoom(d, 0.5);
+	// }
+	// return (0);
 }
 
 int	print_help(void)
@@ -87,6 +86,7 @@ int	main(int argc, char **argv)
 	}
 	d.ad = mlx_get_data_addr(d.img, &d.bpp, &d.line_sz, &d.endi);
 	draw(&d, argv);
+	mlx_put_image_to_window(d.mlx, d.win, d.img, 0, 0);
 	// mlx_hook(d.win, 17, 0, end_fractol, &d);
 	mlx_key_hook(d.win, key, &d);
 	mlx_mouse_hook(d.win, mouse, &d);

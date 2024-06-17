@@ -20,12 +20,44 @@ void	pixel_put(t_data *d, int x, int y, int color)
 	*(unsigned int *)dst = color;
 }
 
-int	inv(double a, double max)
+int	inv(double a, double max, t_data *d, char x_or_y)
 {
-	double	mid;
+	double range;
+	double low;
+	double high;
 
-	mid = max / 2;
-	return ((int)((a * (max - mid) + mid)));
+	if (x_or_y == 'x')
+	{
+		low = d->xl;
+		high = d->xh;
+	}
+	else if (x_or_y == 'y')
+	{
+		low = d->yl;
+		high = d->yh;
+	}
+	range = high - low;
+	return ((int)((a - low) / range * max));
+}
+
+double	txf(double a, double max, t_data *d, char x_or_y)
+{
+	double range;
+	double low;
+	double high;
+
+	if (x_or_y == 'x')
+	{
+		low = d->xl;
+		high = d->xh;
+	}
+	else if (x_or_y == 'y')
+	{
+		low = d->yl;
+		high = d->yh;
+	}
+	range = high - low;
+	return (a / max * range + low);
 }
 
 void	mandelbrot(t_data *d, double cr, double ci)
@@ -48,9 +80,9 @@ void	mandelbrot(t_data *d, double cr, double ci)
 		n++;
 	}
 	if (n == MAX_ITER)
-		pixel_put(d, inv(cr, W), inv(ci, H), 0x00000000);
+		pixel_put(d, inv(cr, W, d, 'x'), inv(ci, H, d, 'y'), 0x00000000);
 	else
-		pixel_put(d, inv(cr, W), inv(ci, H), (int)(n * 16));
+		pixel_put(d, inv(cr, W, d, 'x'), inv(ci, H, d, 'y'), (int)(n * 16));
 }
 
 void	julia(t_data *d, double zr, double zi, char **argv)
@@ -73,17 +105,9 @@ void	julia(t_data *d, double zr, double zi, char **argv)
 		n++;
 	}
 	if (n == MAX_ITER)
-		pixel_put(d, inv(zr0, W), inv(zi0, H), 0x00000000);
+		pixel_put(d, inv(zr0, W, d, 'x'), inv(zi0, H, d, 'y'), 0x00000000);
 	else
-		pixel_put(d, inv(zr0, W), inv(zi0, H), (int)(n * 16));
-}
-
-double	txf(double a, double max)
-{
-	double	mid;
-
-	mid = max / 2;
-	return ((double)((a - mid) / (max - mid)));
+		pixel_put(d, inv(zr0, W, d, 'x'), inv(zi0, H, d, 'y'), (int)(n * 16));
 }
 
 void	draw(t_data *d, char **argv)
@@ -94,22 +118,37 @@ void	draw(t_data *d, char **argv)
 	double	y_txfed;
 
 	mlx_clear_window(d->mlx, d->win);
+	if (!ft_strncmp(argv[1], "mandelbrot", ft_strlen(argv[1])))
+	{
+		d->frac = MANDELBROT;
+		d->xl = -2;
+		d->xh = 1;
+		d->yl = -1.5;
+		d->yh = 1.5;
+	}
+	else if (!ft_strncmp(argv[1], "julia", ft_strlen(argv[1])))
+	{
+		d->frac = JULIA;
+		d->xl = -2;
+		d->xh = 2;
+		d->yl = -2;
+		d->yh = 2;
+	}
 	x = 0;
 	while (x < W)
 	{
 		y = 0;
 		while (y < H)
 		{
-			x_txfed = txf((double)x, (double)W);
-			y_txfed = txf((double)y, (double)H);
-			if (!ft_strncmp(argv[1], "mandelbrot", 10))
+			x_txfed = txf((double)x, (double)W, d, 'x');
+			y_txfed = txf((double)y, (double)H, d, 'y');
+			if (d->frac == MANDELBROT)
 				mandelbrot(d, x_txfed, y_txfed);
-			else if (!ft_strncmp(argv[1], "julia", 5))
+			else if (d->frac == JULIA)
 				julia(d, x_txfed, y_txfed, argv);
 			y++;
 		}
 		x++;
 	}
-	mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
 	return ;
 }
