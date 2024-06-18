@@ -12,31 +12,22 @@
 
 #include "fractol.h"
 
-void	free_t_data(t_data *a)
+void	free_t_data(t_data *d)
 {
-	if (a)
+	if (d)
 	{
-		free(a);
-		a = NULL;
+		free(d->mlx);
+		d->mlx = NULL;
+		free(d);
+		d = NULL;
 	}
 }
 
-int	free_many(char *arr1, char *arr2, char **arr3, char *arr4)
+void destroy_and_free(t_data *d)
 {
-	char	**temp3;
-
-	if (arr1)
-		free(arr1);
-	if (arr2)
-		free(arr2);
-	if (arr3)
-	{
-		temp3 = arr3;
-		while (*arr3)
-			free(*arr3++);
-		free(temp3);
-	}
-	if (arr4)
-		free(arr4);
-	return (0);
+	mlx_destroy_image(d->mlx, d->img);
+	mlx_destroy_window(d->mlx, d->win);
+	mlx_destroy_display(d->mlx);
+	free_t_data(d);
+	exit(0);
 }
