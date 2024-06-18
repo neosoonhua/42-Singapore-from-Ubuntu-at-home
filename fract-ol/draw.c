@@ -20,7 +20,7 @@ void	pixel_put(t_data *d, int x, int y, int color)
 	*(unsigned int *)dst = color;
 }
 
-int	mandelbrot(t_data *d, double cr, double ci)
+int	mandelbrot(double cr, double ci)
 {
 	int		n;	
 	double	zr;
@@ -46,19 +46,15 @@ int	julia(t_data *d, double zr, double zi)
 {
 	int		n;	
 	double	temp;
-	double	zr0;
-	double	zi0;
-
+	
 	n = 0;
-	zr0 = zr;
-	zi0 = zi;
 	while (n < MAX_ITER)
 	{
 		if (zr * zr + zi * zi > 4)
 			break ;
 		temp = zr;
-		zr = zr * zr - zi * zi + (double)ft_atoi(d->argv[2]) / 100000;
-		zi = 2 * temp * zi + (double)ft_atoi(d->argv[3]) / 100000;
+		zr = zr * zr - zi * zi + (double)mod_atoi(d->argv[2], d) / 100000;
+		zi = 2 * temp * zi + (double)mod_atoi(d->argv[3], d) / 100000;
 		n++;
 	}
 	return (n);
@@ -72,7 +68,7 @@ int	iterate_fractal(t_data *d, int x, int y)
 	x_txfed = txf((double)x, (double)W, d, 'x');
 	y_txfed = txf((double)y, (double)H, d, 'y');
 	if (d->frac == MANDELBROT)
-		return (mandelbrot(d, x_txfed, y_txfed));
+		return (mandelbrot(x_txfed, y_txfed));
 	else if (d->frac == JULIA)
 		return (julia(d, x_txfed, y_txfed));
 	return (0);

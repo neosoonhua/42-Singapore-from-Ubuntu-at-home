@@ -16,12 +16,12 @@ LIBFT = $(LIBFT_PATH)/libft.a
 LIBMLX_PATH = ./minilibx-linux
 LIBMLX = $(LIBMLX_PATH)/libmlx_Linux.a
 
-SRC = fractol.c draw.c free_and_txf.c events.c
+SRC = fractol.c draw.c util.c events.c
 
 OBJ = $(SRC:.c=.o)
 
 CC = cc
-CFLAGS = -g #-Wall -Wextra -Werror
+CFLAGS = -g -Wall -Wextra -Werror
 MLX_FLAGS = -Lminilibx-linux -lXext -lX11 -lm
 
 all: $(NAME) 

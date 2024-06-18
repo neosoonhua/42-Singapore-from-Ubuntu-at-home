@@ -12,13 +12,12 @@
 /* ************************************************************************** */
 
 #include "fractol.h"
-#include <stdio.h> //To delete
 
 int	key(int key, t_data *d)
 {
 	if (key == XK_Escape)
 	{
-		ft_printf("%d key (ESC) pressed.\n", key);
+		ft_printf("ESC key pressed.\n");
 		destroy_and_free(d);
 	}
 	return (0);
@@ -39,10 +38,6 @@ void	zoom(t_data *d, double factor, int x_cent, int y_cent)
 	double	x_cent_txfed;
 	double	y_cent_txfed;
 
-	printf("xl: %lf\n", d->xl);
-	printf("xh: %lf\n", d->xh);
-	printf("yl: %lf\n", d->yl);
-	printf("yh: %lf\n", d->yh);
 	x_cent_txfed = txf((double)x_cent, (double)W, d, 'x');
 	y_cent_txfed = txf((double)y_cent, (double)H, d, 'y');
 	halved_factor = factor * 0.5;
@@ -58,15 +53,15 @@ void	zoom(t_data *d, double factor, int x_cent, int y_cent)
 
 int	mouse(int key, int x, int y, t_data *d)
 {
-	ft_printf("mouse\n");
+	ft_printf("Mouse\n");
 	if (key == MOUSE_WHEEL_UP)
 	{
-		ft_printf("zoom in\n");
+		ft_printf("Zoom in\n");
 		zoom(d, 0.75, x, y);
 	}
 	if (key == MOUSE_WHEEL_DOWN)
 	{
-		ft_printf("zoom out\n");
+		ft_printf("Zoom out\n");
 		zoom(d, 1.6, x, y);
 	}
 	return (0);

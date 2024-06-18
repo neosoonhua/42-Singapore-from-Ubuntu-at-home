@@ -12,6 +12,35 @@
 
 #include "fractol.h"
 
+int	mod_atoi(const char *str, t_data *d)
+{
+	int		i;
+	int		count_neg;
+	long	result;
+
+	i = 0;
+	count_neg = 0;
+	result = 0;
+	while (str[i] == ' ' || (str[i] >= 9 && str[i] <= 13))
+		i++;
+	if (str[i] == '-' || str[i] == '+')
+	{
+		if (str[i++] == '-')
+			count_neg++;
+	}
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (print_help(d));
+		result = result * 10 + str[i++] - '0';
+	}
+	if (count_neg % 2 == 1)
+		result *= -1;
+	if (result > (long)INT_MAX || result < (long)INT_MIN)
+		return (print_help(d));
+	return (result);
+}
+
 double	txf(double a, double max, t_data *d, char x_or_y)
 {
 	double	range;
