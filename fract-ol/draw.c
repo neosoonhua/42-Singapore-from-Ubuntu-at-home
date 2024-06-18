@@ -46,7 +46,7 @@ int	julia(t_data *d, double zr, double zi)
 {
 	int		n;	
 	double	temp;
-	
+
 	n = 0;
 	while (n < MAX_ITER)
 	{
@@ -89,9 +89,9 @@ void	draw(t_data *d)
 		{
 			n = iterate_fractal(d, x, y);
 			if (n == MAX_ITER)
-				pixel_put(d, x, y, 0x00000000);
+				pixel_put(d, x, y, 0x99550000);
 			else
-				pixel_put(d, x, y, (int)(n * 16));
+				pixel_put(d, x, y, (int)(n * 3000300));
 			y++;
 		}
 		x++;

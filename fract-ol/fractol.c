@@ -58,8 +58,8 @@ void	values_init(t_data *d, char **argv)
 	{
 		d->frac = JULIA;
 		d->xl = -2.5;
-		d->xh = 1.5;
-		d->yl = -2;
+		d->xh = 2.5;
+		d->yl = -1.5;
 		d->yh = 2;
 	}
 	d->mlx = mlx_init();
