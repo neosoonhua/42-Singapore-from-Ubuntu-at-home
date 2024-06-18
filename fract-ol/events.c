@@ -28,9 +28,10 @@ int	cross_on_window_frame(t_data *d)
 {
 	ft_printf("Cross on window frame clicked on.\n");
 	destroy_and_free(d);
+	return (0);
 }
 
-void zoom(t_data *d, double factor, int x_cent, int y_cent)
+void	zoom(t_data *d, double factor, int x_cent, int y_cent)
 {
 	double	x_range_halved_factor;
 	double	y_range_halved_factor;
@@ -50,23 +51,22 @@ void zoom(t_data *d, double factor, int x_cent, int y_cent)
 	d->xl = x_cent_txfed - x_range_halved_factor;
 	d->xh = x_cent_txfed + x_range_halved_factor;
 	d->yl = y_cent_txfed - y_range_halved_factor;
-	d->yh = y_cent_txfed + y_range_halved_factor;		
-	mlx_clear_window(d->mlx, d->win);
+	d->yh = y_cent_txfed + y_range_halved_factor;
 	draw(d);
 	mlx_put_image_to_window(d->mlx, d->win, d->img, 0, 0);
 }
 
 int	mouse(int key, int x, int y, t_data *d)
 {
-	printf("mouse\n");
+	ft_printf("mouse\n");
 	if (key == MOUSE_WHEEL_UP)
 	{
-		printf("zoom in\n");
+		ft_printf("zoom in\n");
 		zoom(d, 0.75, x, y);
 	}
 	if (key == MOUSE_WHEEL_DOWN)
 	{
-		printf("zoom out\n");
+		ft_printf("zoom out\n");
 		zoom(d, 1.6, x, y);
 	}
 	return (0);
