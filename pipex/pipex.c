@@ -124,8 +124,8 @@ int	main(int argc, char **argv, char **envp)
 	if (check_argc(argc))
 		return (0);
 	p = construct();
+	in_out(p, argv, envp);
 	poss_paths = get_poss_paths(envp);
-	in_out(p, poss_paths, argv, envp);
 	pipe(p->pf);
 	pid[0] = fork();
 	if (pid[0] < 0)

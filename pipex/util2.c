@@ -26,31 +26,31 @@ char	*get_shell(char **envp)
 	return (NULL);
 }
 
-void	infile(t_p p, char **poss_paths, char **argv, char **envp)
+void	infile(t_p p, char **argv, char **envp)
 {
 	p->io[0] = open(argv[1], O_RDONLY);
 	if (p->io[0] < 0)
 	{
 		ft_printf(1, "%s: ", get_shell(envp));
 		ft_printf(1, "no such file or directory: %s\n", argv[1]);
-		free_p_and_many(p, NULL, poss_paths, NULL);
+		free_p_and_many(p, NULL, NULL, NULL);
 		exit (0);
 	}
 }
 
-void	outfile(t_p p, char **poss_paths, char **argv)
+void	outfile(t_p p, char **argv)
 {
 	p->io[1] = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
 	if (p->io[1] < 0)
 	{
 		perror(argv[4]);
-		free_p_and_many(p, NULL, poss_paths, NULL);
+		free_p_and_many(p, NULL, NULL, NULL);
 		exit (0);
 	}
 }
 
-void	in_out(t_p p, char **poss_paths, char **argv, char **envp)
+void	in_out(t_p p, char **argv, char **envp)
 {
-	infile(p, poss_paths, argv, envp);
-	outfile(p, poss_paths, argv);
+	infile(p, argv, envp);
+	outfile(p, argv);
 }
