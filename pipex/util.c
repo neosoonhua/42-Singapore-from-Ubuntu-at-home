@@ -52,7 +52,7 @@ void	close_pipe_return(int *pipefd)
 	return ;
 }
 
-t_p	construct(void)
+t_p	calloc_p(void)
 {
 	t_p	p;
 

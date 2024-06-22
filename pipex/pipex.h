@@ -34,7 +34,7 @@ char	*get_shell(char **envp);
 int		free_many(char *arr1, char **arr2, char **arr3);
 int		check_argc(int argc);
 void	close_pipe_return(int *pipefd);
-t_p		construct(void);
+t_p		calloc_p(void);
 int		free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3);
 
 #endif

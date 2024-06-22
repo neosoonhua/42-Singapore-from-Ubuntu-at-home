@@ -123,7 +123,7 @@ int	main(int argc, char **argv, char **envp)
 
 	if (check_argc(argc))
 		return (0);
-	p = construct();
+	p = calloc_p();
 	in_out(p, argv, envp);
 	poss_paths = get_poss_paths(envp);
 	pipe(p->pf);
