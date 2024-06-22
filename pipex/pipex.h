@@ -27,9 +27,9 @@ typedef struct stack {
 
 typedef t_s*	t_p;
 
-void	in_out(t_p p, char **poss_paths, char **argv, char **envp);
-void	outfile(t_p p, char **poss_paths, char **argv);
-void	infile(t_p p, char **poss_paths, char **argv, char **envp);
+void	in_out(t_p p, char **argv, char **envp);
+void	outfile(t_p p, char **argv);
+void	infile(t_p p, char **argv, char **envp);
 char	*get_shell(char **envp);
 int		free_many(char *arr1, char **arr2, char **arr3);
 int		check_argc(int argc);
