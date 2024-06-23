@@ -47,7 +47,6 @@ typedef struct s_data {
 	char	**argv;
 }	t_data;
 
-// void	pixel_put(t_data *d, int x, int y, int color);
 int		mod_atoi(const char *str, t_data *d);
 int		key(int key, t_data *d);
 int		cross_on_window_frame(t_data *d);
@@ -55,7 +54,8 @@ int		mouse(int key, int x, int y, t_data *d);
 void	free_t_data(t_data *a);
 int		destroy_and_free(t_data *d);
 double	txf(double a, double max, t_data *d, char x_or_y);
-int		print_help(t_data *d);
+int		print_help(void);
+int		print_help_destroy_free(t_data *d);
 void	draw(t_data *data_p);
 
 #endif

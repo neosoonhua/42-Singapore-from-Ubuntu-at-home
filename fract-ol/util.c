@@ -31,13 +31,13 @@ int	mod_atoi(const char *str, t_data *d)
 	while (str[i])
 	{
 		if (!ft_isdigit(str[i]))
-			return (print_help(d));
+			return (print_help_destroy_free(d));
 		result = result * 10 + str[i++] - '0';
 	}
 	if (count_neg % 2 == 1)
 		result *= -1;
 	if (result > (long)INT_MAX || result < (long)INT_MIN)
-		return (print_help(d));
+		return (print_help_destroy_free(d));
 	return (result);
 }
 
@@ -47,6 +47,8 @@ double	txf(double a, double max, t_data *d, char x_or_y)
 	double	low;
 	double	high;
 
+	low = 99999;
+	high = -99999;
 	if (x_or_y == 'x')
 	{
 		low = d->xl;

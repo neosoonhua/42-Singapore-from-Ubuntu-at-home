@@ -12,7 +12,20 @@
 
 #include "fractol.h"
 
-int	print_help(t_data *d)
+int	print_help(void)
+{
+	ft_printf("How to use:\n");
+	ft_printf("-------------------------------------------\n");
+	ft_printf("./fractol mandelbrot\n");
+	ft_printf("or\n");
+	ft_printf("./fractol julia -3 17\n");
+	ft_printf("where '-3' and '17' can be replaced by any integers");
+	ft_printf(" between 200000 and -200000.\n");
+	exit (0);
+	return (0);
+}
+
+int	print_help_destroy_free(t_data *d)
 {
 	ft_printf("How to use:\n");
 	ft_printf("-------------------------------------------\n");
@@ -71,13 +84,13 @@ int	main(int argc, char **argv)
 {
 	t_data	*d;
 
+	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
+		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
+			return (print_help());
 	d = ft_calloc(1, sizeof(t_data));
 	if (!d)
 		return (0);
 	null_init(d);
-	if (!(argc == 2 && !ft_strncmp(argv[1], "mandelbrot", 10)))
-		if (!(argc == 4 && !ft_strncmp(argv[1], "julia", 5)))
-			return (print_help(d));
 	values_init(d, argv);
 	d->win = mlx_new_window(d->mlx, W, H, "First window");
 	if (!d->win)
