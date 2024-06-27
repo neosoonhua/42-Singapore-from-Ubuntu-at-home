@@ -38,7 +38,7 @@ char	*get_path(char **args, char **poss_paths)
 	char	*temp_path;
 	char	*path;
 
-	if (access(args[0], X_OK) != -1)
+	if (access(args[0], F_OK) != -1 && access(args[0], X_OK) != -1)
 		return (ft_strjoin("", args[0]));
 	else
 	{
@@ -47,7 +47,7 @@ char	*get_path(char **args, char **poss_paths)
 			temp_path = ft_strjoin(*poss_paths++, "/");
 			path = ft_strjoin(temp_path, args[0]);
 			free(temp_path);
-			if (access(path, X_OK) != -1)
+			if (access(path, F_OK) != -1 && access(path, X_OK) != -1)
 				return (path);
 			else
 				free(path);
@@ -78,7 +78,7 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	close(p->pf[0]);
 	if (execve((const char *)path, args, envp) == -1)
 	{
-		free_many(path, args, NULL);
+		free_p_and_many(p, path, args, poss_paths);
 		write(1, "Could not execute child_0 execve\n", 33);
 		exit (0);
 	}
@@ -107,7 +107,7 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	close(p->pf[1]);
 	if (execve((const char *)path, args, envp) == -1)
 	{
-		free_many(path, args, NULL);
+		free_p_and_many(p, path, args, poss_paths);
 		write(1, "Could not execute child_1 execve\n", 33);
 		exit (0);
 	}
@@ -132,13 +132,13 @@ int	main(int argc, char **argv, char **envp)
 		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[0] && !child_0(p, poss_paths, argv, envp))
 		close_pipe_return(p->pf);
+	waitpid(-1, &status, 0);
 	pid[1] = fork();
 	if (pid[1] < 0)
 		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[1] && !child_1(p, poss_paths, argv, envp))
 		close_pipe_return(p->pf);
 	close_pipe_return(p->pf);
-	waitpid(-1, &status, 0);
 	waitpid(-1, &status, 0);
 	return (free_p_and_many(p, NULL, poss_paths, NULL));
 }

@@ -64,16 +64,16 @@ t_p	calloc_p(void)
 	return (p);
 }
 
-int	free_p_and_many(t_p a, char *arr1, char **arr2, char **arr3)
+int	free_p_and_many(t_p p, char *arr1, char **arr2, char **arr3)
 {
-	if (a)
+	if (p)
 	{
-		free(a->io);
-		a->io = NULL;
-		free(a->pf);
-		a->pf = NULL;
-		free(a);
-		a = NULL;
+		free(p->io);
+		p->io = NULL;
+		free(p->pf);
+		p->pf = NULL;
+		free(p);
+		p = NULL;
 	}
 	free_many(arr1, arr2, arr3);
 	return (0);
