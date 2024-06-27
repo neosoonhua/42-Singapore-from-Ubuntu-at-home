@@ -32,15 +32,14 @@ void	msg(char *str, int pid)
 	{
 		i = 1;
 		c = (unsigned char)(*str);
-		while (i < 8)
+		while (i <= 8)
 		{
-			bit = 1 & (c >> (8 - i));
+			bit = 1 & (c >> (8 - i++));
 			if (bit == 1)
-				kill(pid, SIGUSR2);
-			else
 				kill(pid, SIGUSR1);
+			else
+				kill(pid, SIGUSR2);
 			usleep(38);
-			i++;
 		}
 		str++;
 	}
@@ -54,7 +53,7 @@ int	main(int argc, char **argv)
 	if (argc != 3)
 	{
 		ft_printf(1, "To input: ./client <Server's PID> ");
-		ft_printf(1, "<Message client wants to sent to server>\n");
+		ft_printf(1, "\"Message client wants to send to server\"\n");
 		exit(1);
 	}
 	sigemptyset(&ac.sa_mask);

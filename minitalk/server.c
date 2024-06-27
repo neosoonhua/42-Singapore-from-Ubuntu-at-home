@@ -16,6 +16,7 @@ t_sv	sv;
 
 void	sv_hdlr(int num, siginfo_t *info, void *ucontext)
 {
+	// ft_printf(1, "num in sv_hdlr: %d\n", num);
 	(void)ucontext;
 	(void)info;
 	if (sv.flag == 1)
