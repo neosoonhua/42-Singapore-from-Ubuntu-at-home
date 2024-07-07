@@ -65,11 +65,11 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	path = get_path(args, poss_paths);
 	if (!path)
 	{
-		ft_printf(1, "%s: ", get_shell(envp));
+		ft_printf(2, "%s: ", get_shell(envp));
 		if (ft_strnstr(argv[2], "/", ft_strlen(argv[2])))
-			ft_printf(1, "no such file or directory: %s\n", args[0]);
+			ft_printf(2, "no such file or directory: %s\n", args[0]);
 		else
-			ft_printf(1, "command not found: %s\n", args[0]);
+			ft_printf(2, "command not found: %s\n", args[0]);
 		free_p_and_many(p, path, args, poss_paths);
 		exit (0);
 	}
@@ -79,7 +79,7 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	if (execve((const char *)path, args, envp) == -1)
 	{
 		free_p_and_many(p, path, args, poss_paths);
-		write(1, "Could not execute child_0 execve\n", 33);
+		write(2, "Could not execute child_0 execve\n", 33);
 		exit (0);
 	}
 	return (1);
@@ -94,11 +94,11 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	path = get_path(args, poss_paths);
 	if (!path)
 	{
-		ft_printf(1, "%s: ", get_shell(envp));
+		ft_printf(2, "%s: ", get_shell(envp));
 		if (ft_strnstr(argv[3], "/", ft_strlen(argv[3])))
-			ft_printf(1, "no such file or directory: %s\n", args[0]);
+			ft_printf(2, "no such file or directory: %s\n", args[0]);
 		else
-			ft_printf(1, "command not found: %s\n", args[0]);
+			ft_printf(2, "command not found: %s\n", args[0]);
 		free_p_and_many(p, path, args, poss_paths);
 		exit (0);
 	}
@@ -108,7 +108,7 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	if (execve((const char *)path, args, envp) == -1)
 	{
 		free_p_and_many(p, path, args, poss_paths);
-		write(1, "Could not execute child_1 execve\n", 33);
+		write(2, "Could not execute child_1 execve\n", 33);
 		exit (0);
 	}
 	return (1);
@@ -131,14 +131,14 @@ int	main(int argc, char **argv, char **envp)
 	if (pid[0] < 0)
 		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[0] && !child_0(p, poss_paths, argv, envp))
-		close_pipe_return(p->pf);
+		close_pipe_close_file_return(p);
 	waitpid(-1, &status, 0);
 	pid[1] = fork();
 	if (pid[1] < 0)
 		return (free_p_and_many(p, NULL, poss_paths, NULL));
 	if (!pid[1] && !child_1(p, poss_paths, argv, envp))
-		close_pipe_return(p->pf);
-	close_pipe_return(p->pf);
+		close_pipe_close_file_return(p);
+	close_pipe_close_file_return(p);
 	waitpid(-1, &status, 0);
 	return (free_p_and_many(p, NULL, poss_paths, NULL));
 }

@@ -45,10 +45,12 @@ int	check_argc(int argc)
 	return (0);
 }
 
-void	close_pipe_return(int *pipefd)
+void	close_pipe_close_file_return(t_p p)
 {
-	close(pipefd[0]);
-	close(pipefd[1]);
+	close(p->pf[0]);
+	close(p->pf[1]);
+	close(p->io[0]);
+	close(p->io[1]);
 	return ;
 }
 
