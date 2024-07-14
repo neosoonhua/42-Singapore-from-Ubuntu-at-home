@@ -39,7 +39,7 @@ char	*get_path(char **args, char **poss_paths)
 	char	*path;
 
 	if (access(args[0], F_OK) != -1 && access(args[0], X_OK) != -1)
-		return (ft_strjoin("", args[0]));
+		return (args[0]);
 	else
 	{
 		while (*poss_paths)
