@@ -56,12 +56,21 @@ char	*get_path(char **args, char **poss_paths)
 	return (NULL);
 }
 
+void	print_2d_char_arr(char **arr)
+{
+	while (*arr)
+		ft_printf(1, "%s\n", *arr++);
+}
+
 int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 {
 	char	*path;
 	char	**args;
 
-	args = ft_split(argv[2], ' ');
+	args = split_cmd(argv[2], ' ');
+	ft_printf(1, "child_0\n");
+	print_2d_char_arr(args);
+	ft_printf(1, "End of args for child_0\n");
 	path = get_path(args, poss_paths);
 	if (!path)
 	{
@@ -90,7 +99,10 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	char	*path;
 	char	**args;
 
-	args = ft_split(argv[3], ' ');
+	args = split_cmd(argv[3], ' ');
+	ft_printf(1, "child_1\n");
+	print_2d_char_arr(args);
+	ft_printf(1, "End of args for child_1\n");
 	path = get_path(args, poss_paths);
 	if (!path)
 	{

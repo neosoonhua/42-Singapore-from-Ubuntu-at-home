@@ -26,6 +26,7 @@ static int	count_words(char const *s, char delimiter)
 		while (*s && *s != delimiter)
 			s++;
 	}
+	ft_printf(1, "count: %d\n", count);
 	return (count);
 }
 
@@ -83,8 +84,12 @@ char	**split_cmd(char const *s, char c)
 		while (*str && *str == c)
 			str++;
 		c = quote_or_not(str++, c);
+		if (c == ' ')
+			str--;
 		if (*str && !get_word(&result[i++], str, c))
 			return (free_mem(result, i));
+		if (c != ' ')// && i < count_words(s, ' '))
+			result[i++] = NULL;
 		while (*str && *str != c)
 			str++;
 	}
