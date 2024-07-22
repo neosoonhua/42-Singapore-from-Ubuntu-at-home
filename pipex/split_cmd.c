@@ -12,19 +12,36 @@
 
 #include "pipex.h"
 
-static int	count_words(char const *s, char delimiter)
+static int	count_words(char const *s, char c)
 {
 	int	count;
+	int	quote;
 
 	count = 0;
-	while (*s)
+	while (1)
 	{
-		while (*s && *s == delimiter)
+		while (*s == c)
 			s++;
-		if (*s)
+		if (*s == '\0')
+			break;
+		if (*s == '"' || *s == '\'')
+		{
+			quote = *s++;
+			while (*s && *s != quote)
+				s++;
+			if (*s == '\0')
+				return (ft_printf(2, "Unmatched quote\n"));
 			count++;
-		while (*s && *s != delimiter)
 			s++;
+			continue;
+		}
+		if (ft_isalnum(*s))
+		{
+			while (ft_isalnum(*s))
+				s++;
+			count++;
+			continue;
+		}
 	}
 	ft_printf(1, "count: %d\n", count);
 	return (count);
@@ -38,32 +55,20 @@ static void	*free_mem(char **s, int i)
 	return (0);
 }
 
-static int	get_word(char **strs, char *s, char c)
+static int	get_word(char **strs, char *begin, char *end)
 {
-	int	len;
 	int	i;
+	int	len;
 
-	len = 0;
-	while (s[len] && s[len] != c)
-		len++;
+	len = end - begin;
 	*strs = malloc(sizeof(char) * (len + 1));
 	if (!*strs)
 		return (0);
 	i = -1;
 	while (++i < len)
-		strs[0][i] = s[i];
+		strs[0][i] = begin[i];
 	strs[0][i] = 0;
 	return (1);
-}
-
-char	quote_or_not(char *str, char c)
-{
-	if (*str == '\'')
-		return ('\'');
-	else if (*str == '"')
-		return ('"');
-	else
-		return (c);
 }
 
 char	**split_cmd(char const *s, char c)
@@ -71,6 +76,8 @@ char	**split_cmd(char const *s, char c)
 	int		i;
 	char	*str;
 	char	**result;
+	int		quote;
+	char	*begin;
 
 	if (!s)
 		return (NULL);
@@ -79,19 +86,37 @@ char	**split_cmd(char const *s, char c)
 	result = (char **)malloc(sizeof(char *) * (count_words(s, c) + 1));
 	if (!result)
 		return (NULL);
-	while (*str)
+	while (1)
 	{
-		while (*str && *str == c)
+		while (*str == c)
 			str++;
-		c = quote_or_not(str++, c);
-		if (c == ' ')
-			str--;
-		if (*str && !get_word(&result[i++], str, c))
-			return (free_mem(result, i));
-		if (c != ' ')// && i < count_words(s, ' '))
-			result[i++] = NULL;
-		while (*str && *str != c)
+		if (*str == '\0')
+			break;
+		if (*str == '"' || *str == '\'')
+		{
+			quote = *str++;
+			begin = str;	
+			while (*str && *str != quote)
+				str++;
+			if (*str == '\0')
+			{
+				ft_printf(2, "Unmatched quote\n");
+				return (NULL);
+			}
+			if (*str && !get_word(&result[i++], begin, str))
+				return (free_mem(result, i));
 			str++;
+			continue;
+		}
+		if (ft_isalnum(*str))
+		{
+			begin = str;
+			while (ft_isalnum(*str))
+				str++;
+			if (*str && !get_word(&result[i++], begin, str))
+				return (free_mem(result, i));
+			continue;
+		}
 	}
 	result[i] = NULL;
 	return (result);
