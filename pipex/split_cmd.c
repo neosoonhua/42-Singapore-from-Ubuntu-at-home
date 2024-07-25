@@ -18,7 +18,7 @@ static int	count_words(char const *s, char c)
 	int	quote;
 
 	count = 0;
-	while (1)
+	while (*s)
 	{
 		while (*s == c)
 			s++;
@@ -31,17 +31,14 @@ static int	count_words(char const *s, char c)
 				s++;
 			if (*s == '\0')
 				return (ft_printf(2, "Unmatched quote\n"));
-			count++;
 			s++;
-			continue;
 		}
-		if (ft_isalnum(*s))
+		else
 		{
-			while (ft_isalnum(*s))
+			while (*s && *s != c && *s != '"' && *s != '\'')
 				s++;
-			count++;
-			continue;
 		}
+		count++;
 	}
 	ft_printf(1, "count: %d\n", count);
 	return (count);
@@ -55,7 +52,7 @@ static void	*free_mem(char **s, int i)
 	return (0);
 }
 
-static int	get_word(char **strs, char *begin, char *end)
+static int	get_word(char **strs, const char *begin, char *end)
 {
 	int	i;
 	int	len;
@@ -66,27 +63,27 @@ static int	get_word(char **strs, char *begin, char *end)
 		return (0);
 	i = -1;
 	while (++i < len)
-		strs[0][i] = begin[i];
-	strs[0][i] = 0;
+		(*strs)[i] = begin[i];
+	(*strs)[i] = '\0';
 	return (1);
 }
 
 char	**split_cmd(char const *s, char c)
 {
-	int		i;
-	char	*str;
-	char	**result;
-	int		quote;
-	char	*begin;
+	int			i;
+	char		*str;
+	char		**result;
+	int			quote;
+	const char	*begin;
 
 	if (!s)
 		return (NULL);
-	str = (char *)s;
 	i = 0;
 	result = (char **)malloc(sizeof(char *) * (count_words(s, c) + 1));
 	if (!result)
 		return (NULL);
-	while (1)
+	str = (char *)s;
+	while (*str)
 	{
 		while (*str == c)
 			str++;
@@ -103,19 +100,17 @@ char	**split_cmd(char const *s, char c)
 				ft_printf(2, "Unmatched quote\n");
 				return (NULL);
 			}
-			if (*str && !get_word(&result[i++], begin, str))
+			if (!get_word(&result[i++], begin, str))
 				return (free_mem(result, i));
 			str++;
-			continue;
 		}
-		if (ft_isalnum(*str))
+		else
 		{
 			begin = str;
-			while (ft_isalnum(*str))
+			while (*str && *str != c && *str != '"' && *str != '\'')
 				str++;
 			if (*str && !get_word(&result[i++], begin, str))
 				return (free_mem(result, i));
-			continue;
 		}
 	}
 	result[i] = NULL;
