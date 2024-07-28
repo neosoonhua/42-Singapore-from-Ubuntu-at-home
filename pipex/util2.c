@@ -31,8 +31,8 @@ void	infile(t_p p, char **argv, char **envp)
 	p->io[0] = open(argv[1], O_RDONLY);
 	if (p->io[0] < 0)
 	{
-		ft_printf(1, "%s: ", get_shell(envp));
-		ft_printf(1, "no such file or directory: %s\n", argv[1]);
+		ft_printf(2, "%s: ", get_shell(envp));
+		ft_printf(2, "no such file or directory: %s\n", argv[1]);
 		free_p_and_many(p, NULL, NULL, NULL);
 		exit (0);
 	}

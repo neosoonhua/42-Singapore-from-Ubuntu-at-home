@@ -38,9 +38,9 @@ int	free_many(char *arr1, char **arr2, char **arr3)
 
 int	check_argc(int argc)
 {
-	if (argc != 5)
+	if (argc < 5)
 	{
-		return (write(1, "Number of arguments should be 4.\n", 33));
+		return (write(1, "Number of arguments should be 4 or more.\n", 33));
 	}
 	return (0);
 }

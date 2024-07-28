@@ -12,35 +12,27 @@
 
 #include "pipex.h"
 
+int	ascii9to13(char c)
+{
+	if (c >= 9 && c <= 13)
+		return 1;
+	return 0;
+}
+
 static int	count_words(char const *s, char c)
 {
 	int	count;
-	int	quote;
 
 	count = 0;
 	while (*s)
 	{
-		while (*s == c)
+		while (*s && (*s == c || ascii9to13(*s)))
 			s++;
-		if (*s == '\0')
-			break;
-		if (*s == '"' || *s == '\'')
-		{
-			quote = *s++;
-			while (*s && *s != quote)
-				s++;
-			if (*s == '\0')
-				return (ft_printf(2, "Unmatched quote\n"));
+		if (*s)
+			count++;
+		while (*s && *s != c && !ascii9to13(*s))
 			s++;
-		}
-		else
-		{
-			while (*s && *s != c && *s != '"' && *s != '\'')
-				s++;
-		}
-		count++;
 	}
-	ft_printf(1, "count: %d\n", count);
 	return (count);
 }
 
@@ -52,66 +44,45 @@ static void	*free_mem(char **s, int i)
 	return (0);
 }
 
-static int	get_word(char **strs, const char *begin, char *end)
+static int	get_word(char **strs, char *s, char c)
 {
-	int	i;
 	int	len;
+	int	i;
 
-	len = end - begin;
+	len = 0;
+	while (s[len] && s[len] != c && !ascii9to13(s[len]))
+		len++;
 	*strs = malloc(sizeof(char) * (len + 1));
 	if (!*strs)
 		return (0);
 	i = -1;
 	while (++i < len)
-		(*strs)[i] = begin[i];
-	(*strs)[i] = '\0';
+		strs[0][i] = s[i];
+	strs[0][i] = 0;
 	return (1);
 }
 
 char	**split_cmd(char const *s, char c)
 {
-	int			i;
-	char		*str;
-	char		**result;
-	int			quote;
-	const char	*begin;
+	int		i;
+	char	*str;
+	char	**result;
 
 	if (!s)
 		return (NULL);
+	str = (char *)s;
 	i = 0;
 	result = (char **)malloc(sizeof(char *) * (count_words(s, c) + 1));
 	if (!result)
 		return (NULL);
-	str = (char *)s;
 	while (*str)
 	{
-		while (*str == c)
+		while (*str && (*str == c || ascii9to13(*str)))
 			str++;
-		if (*str == '\0')
-			break;
-		if (*str == '"' || *str == '\'')
-		{
-			quote = *str++;
-			begin = str;	
-			while (*str && *str != quote)
-				str++;
-			if (*str == '\0')
-			{
-				ft_printf(2, "Unmatched quote\n");
-				return (NULL);
-			}
-			if (!get_word(&result[i++], begin, str))
-				return (free_mem(result, i));
+		if (*str && !get_word(&result[i++], str, c))
+			return (free_mem(result, i));
+		while (*str && *str != c && !ascii9to13(*str))
 			str++;
-		}
-		else
-		{
-			begin = str;
-			while (*str && *str != c && *str != '"' && *str != '\'')
-				str++;
-			if (*str && !get_word(&result[i++], begin, str))
-				return (free_mem(result, i));
-		}
 	}
 	result[i] = NULL;
 	return (result);
