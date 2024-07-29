@@ -67,7 +67,7 @@ int	child_0(t_p p, char **poss_paths, char **argv, char **envp)
 	char	*path;
 	char	**args;
 
-	args = split_cmd(argv[2], ' ');
+	args = split_cmd(argv[2]);
 	ft_printf(1, "child_0\n");
 	print_2d_char_arr(args);
 	ft_printf(1, "End of args for child_0\n");
@@ -99,7 +99,7 @@ int	child_1(t_p p, char **poss_paths, char **argv, char **envp)
 	char	*path;
 	char	**args;
 
-	args = split_cmd(argv[3], ' ');
+	args = split_cmd(argv[3]);
 	ft_printf(1, "child_1\n");
 	print_2d_char_arr(args);
 	ft_printf(1, "End of args for child_1\n");

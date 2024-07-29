@@ -27,7 +27,7 @@ typedef struct stack {
 
 typedef t_s*	t_p;
 
-char	**split_cmd(char const *s, char c);
+char	**split_cmd(char const *s);
 void	in_out(t_p p, char **argv, char **envp);
 void	outfile(t_p p, char **argv);
 void	infile(t_p p, char **argv, char **envp);

@@ -19,18 +19,18 @@ int	ascii9to13(char c)
 	return 0;
 }
 
-static int	count_words(char const *s, char c)
+static int	count_words(char const *s)
 {
 	int	count;
 
 	count = 0;
 	while (*s)
 	{
-		while (*s && (*s == c || ascii9to13(*s)))
+		while (*s && (*s == ' ' || ascii9to13(*s)))
 			s++;
 		if (*s)
 			count++;
-		while (*s && *s != c && !ascii9to13(*s))
+		while (*s && *s != ' ' && !ascii9to13(*s))
 			s++;
 	}
 	return (count);
@@ -44,13 +44,13 @@ static void	*free_mem(char **s, int i)
 	return (0);
 }
 
-static int	get_word(char **strs, char *s, char c)
+static int	get_word(char **strs, char *s)
 {
 	int	len;
 	int	i;
 
 	len = 0;
-	while (s[len] && s[len] != c && !ascii9to13(s[len]))
+	while (s[len] && s[len] != ' ' && !ascii9to13(s[len]))
 		len++;
 	*strs = malloc(sizeof(char) * (len + 1));
 	if (!*strs)
@@ -62,7 +62,7 @@ static int	get_word(char **strs, char *s, char c)
 	return (1);
 }
 
-char	**split_cmd(char const *s, char c)
+char	**split_cmd(char const *s)
 {
 	int		i;
 	char	*str;
@@ -72,16 +72,16 @@ char	**split_cmd(char const *s, char c)
 		return (NULL);
 	str = (char *)s;
 	i = 0;
-	result = (char **)malloc(sizeof(char *) * (count_words(s, c) + 1));
+	result = (char **)malloc(sizeof(char *) * (count_words(s) + 1));
 	if (!result)
 		return (NULL);
 	while (*str)
 	{
-		while (*str && (*str == c || ascii9to13(*str)))
+		while (*str && (*str == ' ' || ascii9to13(*str)))
 			str++;
-		if (*str && !get_word(&result[i++], str, c))
+		if (*str && !get_word(&result[i++], str))
 			return (free_mem(result, i));
-		while (*str && *str != c && !ascii9to13(*str))
+		while (*str && *str != ' ' && !ascii9to13(*str))
 			str++;
 	}
 	result[i] = NULL;
