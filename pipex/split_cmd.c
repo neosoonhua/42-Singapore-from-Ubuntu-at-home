@@ -12,26 +12,43 @@
 
 #include "pipex.h"
 
-int	ascii9to13(char c)
+int	blank(char c)
 {
-	if (c >= 9 && c <= 13)
-		return 1;
-	return 0;
+	if (c == 32 || (c >= 9 && c <= 13))
+		return (1);
+	return (0);
 }
 
 static int	count_words(char const *s)
 {
 	int	count;
+	// int	quote;
 
 	count = 0;
 	while (*s)
 	{
-		while (*s && (*s == ' ' || ascii9to13(*s)))
+		while (*s && blank(*s))
 			s++;
 		if (*s)
 			count++;
-		while (*s && *s != ' ' && !ascii9to13(*s))
+		while (*s && !blank(*s))
+		{
+			// if (*s == '"' || *s == '\'')
+			// {
+			// 	quote = *s;
+			// 	s++;
+			// 	while (*s != quote)
+			// 	{
+			// 		s++;
+			// 		if (*s == '\0')
+			// 		{
+			// 			ft_printf(2, "Unmatched quote\n");
+			// 			return (-1);
+			// 		}
+			// 	}
+			// }
 			s++;
+		}
 	}
 	return (count);
 }
@@ -50,8 +67,10 @@ static int	get_word(char **strs, char *s)
 	int	i;
 
 	len = 0;
-	while (s[len] && s[len] != ' ' && !ascii9to13(s[len]))
+	while (s[len] && !blank(s[len]))
+	{
 		len++;
+	}
 	*strs = malloc(sizeof(char) * (len + 1));
 	if (!*strs)
 		return (0);
@@ -77,11 +96,11 @@ char	**split_cmd(char const *s)
 		return (NULL);
 	while (*str)
 	{
-		while (*str && (*str == ' ' || ascii9to13(*str)))
+		while (*str && blank(*str))
 			str++;
 		if (*str && !get_word(&result[i++], str))
 			return (free_mem(result, i));
-		while (*str && *str != ' ' && !ascii9to13(*str))
+		while (*str && !blank(*str))
 			str++;
 	}
 	result[i] = NULL;
