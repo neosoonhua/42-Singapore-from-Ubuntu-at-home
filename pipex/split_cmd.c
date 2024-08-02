@@ -14,15 +14,29 @@
 
 int	blank(char c)
 {
-	if (c == 32 || (c >= 9 && c <= 13))
+	return (c == 32 || (c >= 9 && c <= 13));
+}
+
+static int	handle_quote(const char **s)
+{
+	char	quote;
+
+	quote = **s;
+	(*s)++;
+	while (**s && **s != quote)
+		(*s)++;
+	if (**s == quote)
+	{
+		(*s)++;
 		return (1);
+	}
+	ft_printf(2, "Unmatched quote\n");
 	return (0);
 }
 
-static int	count_words(char const *s)
+static int	count_words(const char *s)
 {
 	int	count;
-	// int	quote;
 
 	count = 0;
 	while (*s)
@@ -30,78 +44,96 @@ static int	count_words(char const *s)
 		while (*s && blank(*s))
 			s++;
 		if (*s)
-			count++;
-		while (*s && !blank(*s))
 		{
-			// if (*s == '"' || *s == '\'')
-			// {
-			// 	quote = *s;
-			// 	s++;
-			// 	while (*s != quote)
-			// 	{
-			// 		s++;
-			// 		if (*s == '\0')
-			// 		{
-			// 			ft_printf(2, "Unmatched quote\n");
-			// 			return (-1);
-			// 		}
-			// 	}
-			// }
-			s++;
+			count++;
+			if (*s == '"' || *s == '\'')
+			{
+				if (!handle_quote(&s))
+					return (-1);
+			}
+			else
+			{
+				while (*s && !blank(*s) && *s != '"' && *s != '\'')
+					s++;
+			}
 		}
 	}
 	return (count);
 }
 
-static void	*free_mem(char **s, int i)
+void	*free_mem(char **s, int count)
 {
-	while (--i >= 0)
-		free(s[i]);
-	free(s);
-	return (0);
-}
-
-static int	get_word(char **strs, char *s)
-{
-	int	len;
 	int	i;
 
-	len = 0;
-	while (s[len] && !blank(s[len]))
-	{
-		len++;
-	}
-	*strs = malloc(sizeof(char) * (len + 1));
-	if (!*strs)
+	i = 0;
+	while (i < count)
+		free(s[i++]);
+	free(s);
+	return (NULL);
+}
+
+static int	extract_word(char **strs, const char **s, int l, char quote)
+{
+	strs[0] = malloc(sizeof(char) * (l + 1));
+	if (!strs[0])
 		return (0);
-	i = -1;
-	while (++i < len)
-		strs[0][i] = s[i];
-	strs[0][i] = 0;
+	ft_strlcpy(strs[0], *s, l + 1);
+	if (quote)
+		*s += l + 1;
+	else
+		*s += l;
 	return (1);
 }
 
-char	**split_cmd(char const *s)
+int	get_word(char **strs, const char **s)
 {
-	int		i;
-	char	*str;
+	int		l;
+	int		quote;
+
+	l = 0;
+	if (**s == '"' || **s == '\'')
+	{
+		quote = **s;
+		(*s)++;
+		while ((*s)[l] && (*s)[l] != quote)
+			l++;
+		if ((*s)[l] == quote)
+			return (extract_word(strs, s, l, quote));
+		else
+		{
+			ft_printf(2, "Unmatched quote\n");
+			return (0);
+		}
+	}
+	else
+	{
+		while ((*s)[l] && !blank((*s)[l]) && (*s)[l] != '"' && (*s)[l] != '\'')
+			l++;
+		return (extract_word(strs, s, l, 0));
+	}
+}
+
+char	**split_cmd(const char *s)
+{
 	char	**result;
+	int		word_count;
+	int		i;
 
 	if (!s)
 		return (NULL);
-	str = (char *)s;
-	i = 0;
-	result = (char **)malloc(sizeof(char *) * (count_words(s) + 1));
+	word_count = count_words(s);
+	if (word_count == -1)
+		return (NULL);
+	result = malloc((word_count + 1) * sizeof(char *));
 	if (!result)
 		return (NULL);
-	while (*str)
+	i = 0;
+	while (*s)
 	{
-		while (*str && blank(*str))
-			str++;
-		if (*str && !get_word(&result[i++], str))
+		while (*s && blank(*s))
+			s++;
+		if (*s && !get_word(&result[i++], &s))
 			return (free_mem(result, i));
-		while (*str && !blank(*str))
-			str++;
 	}
 	result[i] = NULL;
 	return (result);
