@@ -32,6 +32,7 @@ int	main(int argc, char **argv)
 			if (next_line == NULL)
 				break ;
 			printf("%s", next_line);
+			free(next_line);
 		}
 	}
 	close(file);
