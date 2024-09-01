@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/17 22:58:37 by sneo              #+#    #+#             */
-/*   Updated: 2024/09/01 13:12:16 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/02 04:09:38 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,4 +56,5 @@ int		ft_atoi(const char *str);
 void		*thinksleepeat(void *arg);
 void		clean(t_d *d);
 long long	mstime(void);
+void		monitor(t_d *d);
 #endif

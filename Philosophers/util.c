@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/18 22:40:30 by sneo              #+#    #+#             */
-/*   Updated: 2024/09/01 13:32:52 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/02 04:10:25 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@ int	ft_isdigit(int c)
 
 int	ft_atoi(const char *str)
 {
-	int		i;
-	int		count_neg;
+	int	i;
+	int	count_neg;
 	long	result;
 
 	i = 0;
@@ -56,23 +56,27 @@ long long	mstime(void)
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
-long long	tfs(t_p *p)
+long long	tfs(t_d *d)
 {
-	return (mstime() - p->d->st);
+	return (mstime() - d->st);
 }
 
 void	prints(t_p *p, char a)
 {
+	t_d	*d;
+
+	d = p->d;
 	if (a == 'l')
-		printf("%lld\tPhilo %d takes Fork %d\n", tfs(p), p->id, p->id % p->d->num_p);
-	if (a == 'r')
-		printf("%lld\tPhilo %d takes Fork %d\n", tfs(p), p->id, (p->id + 1) % p->d->num_p);
-	if (a == 't')
-		printf("%lld\tPhilo %d thinks\n", tfs(p), p->id);
-	if (a == 's')
-		printf("%lld\tPhilo %d sleeps\n", tfs(p), p->id);
-	if (a == 'e')
-		printf("%lld\tPhilo %d eats\n", tfs(p), p->id);
+		printf("%lld\tPhilo %d takes Fork %d\n", tfs(d), p->id, p->id % p->d->num_p);
+	else if (a == 'r')
+		printf("%lld\tPhilo %d takes Fork %d\n", tfs(d), p->id, (p->id + 1) % p->d->num_p);
+	else if (a == 't')
+		printf("%lld\tPhilo %d thinks\n", tfs(d), p->id);
+	else if (a == 's')
+		printf("%lld\tPhilo %d sleeps\n", tfs(d), p->id);
+	else if (a == 'e')
+		printf("%lld\tPhilo %d eats\n", tfs(d), p->id);
+	return ;
 }
 
 void	*thinksleepeat(void *arg)
@@ -110,6 +114,12 @@ void	*thinksleepeat(void *arg)
 	return (NULL);
 }
 
+void	monitor(t_d *d)
+{
+	if (tfs(d) > 9000)
+		return (clean(d)) ;
+}
+
 void	clean(t_d *d)
 {
 	int	i;
@@ -120,4 +130,5 @@ void	clean(t_d *d)
 	free(d->p);
 	free(d->forks);
 	free(d->threads);
+	return ;
 }

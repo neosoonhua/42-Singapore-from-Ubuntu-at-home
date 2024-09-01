@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/17 22:58:19 by sneo              #+#    #+#             */
-/*   Updated: 2024/09/01 13:13:19 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/02 03:23:42 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,17 +55,23 @@ void	philos_init(t_d *d)
 	}
 }
 
+void	error(t_d *d, char *msg)
+{
+	printf("%s\n", msg);
+	clean(d);
+	return ;
+}
+
 void	start(t_d *d)
 {
 	int	i;
 
-	i = 0;
+	i = -1;
 	d->st = mstime();
-	while (i < d->num_p)
-	{
-		pthread_create(&d->threads[i], NULL, thinksleepeat, &d->p[i]);
-		i++;
-	}
+	while (++i < d->num_p)
+		if (pthread_create(&d->threads[i], NULL, thinksleepeat, &d->p[i]) != 0)
+			error(d, "pthread_create failed");
+	monitor(d);
 	i = 0;
 	while (i < d->num_p)
 		pthread_join(d->threads[i++], NULL);
