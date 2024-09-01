@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/18 22:40:30 by sneo              #+#    #+#             */
-/*   Updated: 2024/08/31 01:38:59 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/01 13:32:52 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int	ft_atoi(const char *str)
 	return (result);
 }
 
-long long	get_time_in_ms(void)
+long long	mstime(void)
 {
 	struct timeval	time;
 
@@ -56,26 +56,68 @@ long long	get_time_in_ms(void)
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
-void	*life(void *arg)
+long long	tfs(t_p *p)
+{
+	return (mstime() - p->d->st);
+}
+
+void	prints(t_p *p, char a)
+{
+	if (a == 'l')
+		printf("%lld\tPhilo %d takes Fork %d\n", tfs(p), p->id, p->id % p->d->num_p);
+	if (a == 'r')
+		printf("%lld\tPhilo %d takes Fork %d\n", tfs(p), p->id, (p->id + 1) % p->d->num_p);
+	if (a == 't')
+		printf("%lld\tPhilo %d thinks\n", tfs(p), p->id);
+	if (a == 's')
+		printf("%lld\tPhilo %d sleeps\n", tfs(p), p->id);
+	if (a == 'e')
+		printf("%lld\tPhilo %d eats\n", tfs(p), p->id);
+}
+
+void	*thinksleepeat(void *arg)
 {
 	t_p	*p;
 
 	p = (t_p *)arg;
 	while (1)
 	{
-		printf("Philosopher %d is thinking\n", p->id);
+		prints(p, 't');
 		usleep(1000 * 1000);
-		pthread_mutex_lock(p->lf);
-		pthread_mutex_lock(p->rf);
-		p->last_meal_time = get_time_in_ms();
-		printf("Philosopher %d is eating\n", p->id);
+		if (p->id % 2 == 1)
+		{
+			pthread_mutex_lock(p->lf);
+			prints(p, 'l');
+			pthread_mutex_lock(p->rf);
+			prints(p, 'r');
+		}
+		else
+		{
+			pthread_mutex_lock(p->rf);
+			prints(p, 'r');
+			pthread_mutex_lock(p->lf);
+			prints(p, 'l');
+		}
+		p->last_meal_time = mstime();
+		prints(p, 'e');
 		p->meals_eaten++;
 		usleep(1000 * 1000);
 		pthread_mutex_unlock(p->lf);
 		pthread_mutex_unlock(p->rf);
-		printf("Philosopher %d is sleeping\n", p->id);
+		prints(p, 's');
 		usleep(1000 * 1000);
 	}
 	return (NULL);
 }
 
+void	clean(t_d *d)
+{
+	int	i;
+
+	i = 0;
+	while (i < d->num_p)
+		pthread_mutex_destroy(&d->forks[i++]);
+	free(d->p);
+	free(d->forks);
+	free(d->threads);
+}

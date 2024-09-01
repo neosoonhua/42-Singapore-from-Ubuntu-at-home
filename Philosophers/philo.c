@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/17 22:58:19 by sneo              #+#    #+#             */
-/*   Updated: 2024/08/31 01:37:16 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/01 13:13:19 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,9 +60,10 @@ void	start(t_d *d)
 	int	i;
 
 	i = 0;
+	d->st = mstime();
 	while (i < d->num_p)
 	{
-		pthread_create(&d->threads[i], NULL, life, &d->p[i]);
+		pthread_create(&d->threads[i], NULL, thinksleepeat, &d->p[i]);
 		i++;
 	}
 	i = 0;
@@ -84,5 +85,6 @@ int	main(int argc, char **argv)
 		 handle_error("malloc");
 	philos_init(&d);
 	start(&d);
+	clean(&d);
 	return (0);
 }

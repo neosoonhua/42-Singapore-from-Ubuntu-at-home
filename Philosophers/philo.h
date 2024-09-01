@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/17 22:58:37 by sneo              #+#    #+#             */
-/*   Updated: 2024/08/31 01:38:13 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/01 13:12:16 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,12 @@ typedef struct s_d {	/* Used as argument to p_start() */
 	t_p		*p;
 	pthread_mutex_t	*forks;
 	pthread_t	*threads;
+	long long	st;
 }	t_d;
 
-int	ft_isdigit(int c);
-int	ft_atoi(const char *str);
-void	*life(void *arg);
-
+int		ft_isdigit(int c);
+int		ft_atoi(const char *str);
+void		*thinksleepeat(void *arg);
+void		clean(t_d *d);
+long long	mstime(void);
 #endif
