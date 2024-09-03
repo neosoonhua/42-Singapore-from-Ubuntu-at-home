@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/18 22:40:30 by sneo              #+#    #+#             */
-/*   Updated: 2024/09/02 04:10:25 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/03 22:19:23 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,57 +67,79 @@ void	prints(t_p *p, char a)
 
 	d = p->d;
 	if (a == 'l')
-		printf("%lld\tPhilo %d takes Fork %d\n", tfs(d), p->id, p->id % p->d->num_p);
+		printf("%lld\t%d has taken Fork %d\n", tfs(d), p->id, p->id % p->d->num_p);
 	else if (a == 'r')
-		printf("%lld\tPhilo %d takes Fork %d\n", tfs(d), p->id, (p->id + 1) % p->d->num_p);
+		printf("%lld\t%d has taken Fork %d\n", tfs(d), p->id, (p->id + 1) % p->d->num_p);
+	else if (a == 'f')
+		printf("%lld\t%d has taken a fork\n", tfs(d), p->id);
 	else if (a == 't')
-		printf("%lld\tPhilo %d thinks\n", tfs(d), p->id);
+		printf("%lld\t%d is thinking\n", tfs(d), p->id);
 	else if (a == 's')
-		printf("%lld\tPhilo %d sleeps\n", tfs(d), p->id);
+		printf("%lld\t%d is sleeping\n", tfs(d), p->id);
 	else if (a == 'e')
-		printf("%lld\tPhilo %d eats\n", tfs(d), p->id);
+		printf("%lld\t%d is eating\n", tfs(d), p->id);
+	else if (a == 'd')
+		printf("%lld\t%d died\n", tfs(d), p->id);
 	return ;
 }
 
-void	*thinksleepeat(void *arg)
+int	clmt(t_p *p)
+{
+	t_d	*d;
+
+	d = p->d;
+	if (tfs(d) - p->last_meal_time >= d->ttdie)
+	{
+		d->one_died = 1;
+		prints(p, 'd');
+	}
+	return (0);
+}
+
+void	*eatsleepthink(void *arg)
 {
 	t_p	*p;
 
 	p = (t_p *)arg;
-	while (1)
+	while (p->d->one_died == 0)
 	{
-		prints(p, 't');
-		usleep(1000 * 1000);
+		clmt(p);
 		if (p->id % 2 == 1)
 		{
 			pthread_mutex_lock(p->lf);
-			prints(p, 'l');
+			prints(p, 'f');
+			if (p->d->num_p == 1)
+			{
+				usleep(p->d->ttdie * 1000);
+				prints(p, 'd');
+				p->d->one_died = 1;
+				return (NULL);
+			}
 			pthread_mutex_lock(p->rf);
-			prints(p, 'r');
+			prints(p, 'f');
 		}
 		else
 		{
 			pthread_mutex_lock(p->rf);
-			prints(p, 'r');
+			prints(p, 'f');
 			pthread_mutex_lock(p->lf);
-			prints(p, 'l');
+			prints(p, 'f');
 		}
-		p->last_meal_time = mstime();
+		clmt(p);
+		p->last_meal_time = tfs(p->d);
 		prints(p, 'e');
 		p->meals_eaten++;
-		usleep(1000 * 1000);
+		usleep(p->d->tteat * 1000);
+		clmt(p);
 		pthread_mutex_unlock(p->lf);
 		pthread_mutex_unlock(p->rf);
 		prints(p, 's');
-		usleep(1000 * 1000);
+		usleep(p->d->ttsleep * 1000);
+		clmt(p);
+		prints(p, 't');
+		clmt(p);
 	}
 	return (NULL);
-}
-
-void	monitor(t_d *d)
-{
-	if (tfs(d) > 9000)
-		return (clean(d)) ;
 }
 
 void	clean(t_d *d)

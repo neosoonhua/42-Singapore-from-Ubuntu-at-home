@@ -6,7 +6,7 @@
 /*   By: sneo <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/17 22:58:19 by sneo              #+#    #+#             */
-/*   Updated: 2024/09/02 03:23:42 by sneo             ###   ########.fr       */
+/*   Updated: 2024/09/03 20:17:34 by sneo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ void	philos_init(t_d *d)
 		d->p[i].lf = &d->forks[i];
 		d->p[i].rf = &d->forks[(i + 1) % d->num_p];
 		d->p[i].d = d;
+		d->p[i].last_meal_time = 0;
 		pthread_mutex_init(&d->forks[i], NULL);
 		i++;
 	}
@@ -69,9 +70,8 @@ void	start(t_d *d)
 	i = -1;
 	d->st = mstime();
 	while (++i < d->num_p)
-		if (pthread_create(&d->threads[i], NULL, thinksleepeat, &d->p[i]) != 0)
+		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i]) != 0)
 			error(d, "pthread_create failed");
-	monitor(d);
 	i = 0;
 	while (i < d->num_p)
 		pthread_join(d->threads[i++], NULL);
