@@ -38,7 +38,7 @@ void	values_init(t_d *d, int argc, char **argv)
 	printf("ttsleep: %d\n", d->ttsleep);
 	printf("musteat: %d\n", d->musteat);
 }
-	
+
 void	philos_init(t_d *d)
 {
 	int	i;
@@ -54,13 +54,6 @@ void	philos_init(t_d *d)
 		pthread_mutex_init(&d->forks[i], NULL);
 		i++;
 	}
-}
-
-void	error(t_d *d, char *msg)
-{
-	printf("%s\n", msg);
-	clean(d);
-	return ;
 }
 
 void	start(t_d *d)
@@ -88,7 +81,7 @@ int	main(int argc, char **argv)
 	d.forks = malloc(d.num_p * sizeof(pthread_mutex_t));
 	d.threads = malloc(d.num_p * sizeof(pthread_t));
 	if (d.p == NULL || d.forks == NULL || d.threads == NULL)
-		 handle_error("malloc");
+		error(&d, "malloc");
 	philos_init(&d);
 	start(&d);
 	clean(&d);
