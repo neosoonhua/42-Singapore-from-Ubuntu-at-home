@@ -1,0 +1,16 @@
+My code:
+1) Server shows rubbish characters.
+2) norminette shows:
+server.c: Error!
+	Error: Code ended unexpectedly.
+
+
+
+
+Copied code: 2nd message does not start on the next line.
+
+
+
+
+
+Overview: man 7 signal
