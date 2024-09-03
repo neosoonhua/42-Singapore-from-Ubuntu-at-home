@@ -32,10 +32,9 @@ void	prints(t_p *p, char a)
 		printf("%lld\t%d is eating\n", tfs(d), p->id);
 	else if (a == 'd')
 		printf("%lld\t%d died\n", tfs(d), p->id);
-	return ;
 }
 
-int	clmt(t_p *p)
+int	dbh(t_p *p)
 {
 	t_d	*d;
 
@@ -44,6 +43,7 @@ int	clmt(t_p *p)
 	{
 		d->one_died = 1;
 		prints(p, 'd');
+		return (1);
 	}
 	return (0);
 }
@@ -53,43 +53,48 @@ void	*eatsleepthink(void *arg)
 	t_p	*p;
 
 	p = (t_p *)arg;
-	while (p->d->one_died == 0)
+	while (!p->d->one_died)
 	{
-		clmt(p);
-		if (p->id % 2 == 1)
+		if (!dbh(p))
 		{
-			pthread_mutex_lock(p->lf);
-			prints(p, 'f');
-			if (p->d->num_p == 1)
+			if (p->id % 2 == 1)
 			{
-				usleep(p->d->ttdie * 1000);
-				prints(p, 'd');
-				p->d->one_died = 1;
-				return (NULL);
+				pthread_mutex_lock(p->lf);
+				prints(p, 'f');
+				if (p->d->num_p == 1)
+				{
+					usleep(p->d->ttdie * 1000);
+					prints(p, 'd');
+					p->d->one_died = 1;
+					return (NULL);
+				}
+				pthread_mutex_lock(p->rf);
+				prints(p, 'f');
 			}
-			pthread_mutex_lock(p->rf);
-			prints(p, 'f');
+			else
+			{
+				pthread_mutex_lock(p->rf);
+				prints(p, 'f');
+				pthread_mutex_lock(p->lf);
+				prints(p, 'f');
+			}
 		}
-		else
+		if (!dbh(p))
 		{
-			pthread_mutex_lock(p->rf);
-			prints(p, 'f');
-			pthread_mutex_lock(p->lf);
-			prints(p, 'f');
+			p->last_meal_time = tfs(p->d);
+			prints(p, 'e');
+			p->meals_eaten++;
+			usleep(p->d->tteat * 1000);
 		}
-		clmt(p);
-		p->last_meal_time = tfs(p->d);
-		prints(p, 'e');
-		p->meals_eaten++;
-		usleep(p->d->tteat * 1000);
-		clmt(p);
-		pthread_mutex_unlock(p->lf);
-		pthread_mutex_unlock(p->rf);
-		prints(p, 's');
-		usleep(p->d->ttsleep * 1000);
-		clmt(p);
-		prints(p, 't');
-		clmt(p);
+		if (!dbh(p))
+		{
+			pthread_mutex_unlock(p->lf);
+			pthread_mutex_unlock(p->rf);
+			prints(p, 's');
+			usleep(p->d->ttsleep * 1000);
+		}
+		if (!dbh(p))
+			prints(p, 't');
 	}
 	return (NULL);
 }
@@ -104,5 +109,4 @@ void	clean(t_d *d)
 	free(d->p);
 	free(d->forks);
 	free(d->threads);
-	return ;
 }

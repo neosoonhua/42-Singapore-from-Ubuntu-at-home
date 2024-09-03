@@ -43,6 +43,7 @@ typedef struct s_d {	/* Used as argument to p_start() */
 	int				one_died;
 	t_p				*p;
 	pthread_mutex_t	*forks;
+	pthread_mutex_t death_check;
 	pthread_t		*threads;
 	long long		st;
 }	t_d;

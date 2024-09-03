@@ -51,6 +51,7 @@ void	philos_init(t_d *d)
 		d->p[i].rf = &d->forks[(i + 1) % d->num_p];
 		d->p[i].d = d;
 		d->p[i].last_meal_time = 0;
+		d->one_died = 0;
 		pthread_mutex_init(&d->forks[i], NULL);
 		i++;
 	}
@@ -60,14 +61,20 @@ void	start(t_d *d)
 {
 	int	i;
 
-	i = -1;
-	d->st = mstime();
-	while (++i < d->num_p)
-		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i]) != 0)
-			error(d, "pthread_create failed");
 	i = 0;
 	while (i < d->num_p)
-		pthread_join(d->threads[i++], NULL);
+	{
+		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i]) != 0)
+			error(d, "pthread_create failed");
+		i++;
+	}
+
+	i = 0;
+	while (i < d->num_p)
+	{
+		pthread_join(d->threads[i], NULL);
+		i++;
+	}
 }
 
 int	main(int argc, char **argv)
