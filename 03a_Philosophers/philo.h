@@ -34,24 +34,25 @@ typedef struct s_p {
 	struct s_d			*d;
 }	t_p;
 
-typedef struct s_d {	/* Used as argument to p_start() */
+typedef struct s_d {
 	int				num_p;
 	int				ttdie;
 	int				tteat;
 	int				ttsleep;
 	int				musteat;
 	int				one_died;
+	pthread_mutex_t	*death_lock;
 	t_p				*p;
 	pthread_mutex_t	*forks;
-	pthread_mutex_t death_check;
 	pthread_t		*threads;
 	long long		st;
 }	t_d;
 
-int			ft_isdigit(int c);
-int			ft_atoi(const char *str);
-void		*eatsleepthink(void *arg);
+void		*check_all_dbh(void *arg_d);
+void		*eatsleepthink(void *arg_p);
 void		clean(t_d *d);
 long long	mstime(void);
 void		error(t_d *d, char *msg);
+int			ft_isdigit(int c);
+int			ft_atoi(const char *str);
 #endif

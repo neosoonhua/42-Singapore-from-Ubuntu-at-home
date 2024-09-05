@@ -44,16 +44,16 @@ void	philos_init(t_d *d)
 	int	i;
 
 	i = 0;
-	while (i < d->num_p)
+	d->one_died = 0;
+	pthread_mutex_init(d->death_lock, NULL);
+	while (++i <= d->num_p)
 	{
-		d->p[i].id = i + 1;
+		d->p[i].id = i;
 		d->p[i].lf = &d->forks[i];
-		d->p[i].rf = &d->forks[(i + 1) % d->num_p];
+		d->p[i].rf = &d->forks[(i) % d->num_p];
 		d->p[i].d = d;
 		d->p[i].last_meal_time = 0;
-		d->one_died = 0;
 		pthread_mutex_init(&d->forks[i], NULL);
-		i++;
 	}
 }
 
@@ -62,19 +62,16 @@ void	start(t_d *d)
 	int	i;
 
 	i = 0;
-	while (i < d->num_p)
-	{
+	d->st = mstime();
+	if (pthread_create(&d->threads[0], NULL, check_all_dbh, &d) != 0)
+			error(d, "pthread_create failed");
+	while (++i <= d->num_p)
 		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i]) != 0)
 			error(d, "pthread_create failed");
-		i++;
-	}
-
 	i = 0;
-	while (i < d->num_p)
-	{
+	while (++i <= d->num_p)
 		pthread_join(d->threads[i], NULL);
-		i++;
-	}
+	pthread_join(d->threads[0], NULL);
 }
 
 int	main(int argc, char **argv)
@@ -85,9 +82,10 @@ int	main(int argc, char **argv)
 		return (print_help());
 	values_init(&d, argc, argv);
 	d.p = malloc(d.num_p * sizeof(t_p));
+	d.death_lock = malloc(sizeof(pthread_mutex_t));
 	d.forks = malloc(d.num_p * sizeof(pthread_mutex_t));
-	d.threads = malloc(d.num_p * sizeof(pthread_t));
-	if (d.p == NULL || d.forks == NULL || d.threads == NULL)
+	d.threads = malloc((1 + d.num_p) * sizeof(pthread_t));
+	if (d.p == NULL || d.death_lock == NULL || d.forks == NULL || d.threads == NULL)
 		error(&d, "malloc");
 	philos_init(&d);
 	start(&d);
