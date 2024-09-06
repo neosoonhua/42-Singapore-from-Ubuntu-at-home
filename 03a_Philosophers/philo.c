@@ -22,7 +22,7 @@ int	print_help(void)
 	return (0);
 }
 
-void	values_init(t_d *d, int argc, char **argv)
+void	d_init(t_d *d, int argc, char **argv)
 {
 	d->num_p = ft_atoi(argv[1]);
 	d->ttdie = ft_atoi(argv[2]);
@@ -32,27 +32,36 @@ void	values_init(t_d *d, int argc, char **argv)
 		d->musteat = ft_atoi(argv[5]);
 	else
 		d->musteat = -1;
+	d->one_died = 0;
+	d->st = 0;
+	d->p = malloc(d->num_p * sizeof(t_p));
+	d->forks = malloc(d->num_p * sizeof(pthread_mutex_t));
+	d->threads = malloc((1 + d->num_p) * sizeof(pthread_t));
+	if (d->p == NULL || d->forks == NULL || d->threads == NULL)
+		error(d, "malloc");
 	printf("num_p: %d\n", d->num_p);
 	printf("ttdie: %d\n", d->ttdie);
 	printf("tteat: %d\n", d->tteat);
 	printf("ttsleep: %d\n", d->ttsleep);
 	printf("musteat: %d\n", d->musteat);
+	printf("one_died: %d\n", d->one_died);
+	printf("st: %lld\n", d->st);
 }
 
-void	philos_init(t_d *d)
+void	p_init(t_d *d)
 {
 	int	i;
 
 	i = -1;
-	d->one_died = 0;
 	pthread_mutex_init(&d->death_lock, NULL);
 	while (++i < d->num_p)
 	{
 		d->p[i].id = i + 1;
 		d->p[i].lf = &d->forks[i];
 		d->p[i].rf = &d->forks[(i + 1) % d->num_p];
-		d->p[i].d = d;
 		d->p[i].last_meal_time = 0;
+		d->p[i].meals_eaten = 0;
+		d->p[i].d = d;
 		pthread_mutex_init(&d->forks[i], NULL);
 	}
 }
@@ -80,14 +89,8 @@ int	main(int argc, char **argv)
 
 	if (argc < 5 || argc > 6)
 		return (print_help());
-	values_init(&d, argc, argv);
-	d.p = malloc(d.num_p * sizeof(t_p));
-	// d.death_lock = malloc(sizeof(pthread_mutex_t));
-	d.forks = malloc(d.num_p * sizeof(pthread_mutex_t));
-	d.threads = malloc((1 + d.num_p) * sizeof(pthread_t));
-	if (d.p == NULL || d.forks == NULL || d.threads == NULL)// || d.death_lock == NULL)
-		error(&d, "malloc");
-	philos_init(&d);
+	d_init(&d, argc, argv);
+	p_init(&d);
 	start(&d);
 	clean(&d);
 	return (0);

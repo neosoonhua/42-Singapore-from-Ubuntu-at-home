@@ -41,11 +41,11 @@ typedef struct s_d {
 	int				ttsleep;
 	int				musteat;
 	int				one_died;
-	pthread_mutex_t	death_lock;
+	long long		st;
 	t_p				*p;
+	pthread_mutex_t	death_lock;
 	pthread_mutex_t	*forks;
 	pthread_t		*threads;
-	long long		st;
 }	t_d;
 
 void		*check_all_dbh(void *arg_d);
