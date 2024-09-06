@@ -42,9 +42,10 @@ int	check_one_dbh(t_p *p)
 	d = p->d;
 	if (tfs(d) - p->last_meal_time >= d->ttdie)
 	{
-		pthread_mutex_lock(d->death_lock);
+		pthread_mutex_lock(&d->death_lock);
 		d->one_died = 1;
-		pthread_mutex_unlock(d->death_lock);
+		printf("d->one_died = 1");
+		pthread_mutex_unlock(&d->death_lock);
 		prints(p, 'd');
 		return (1);
 	}
@@ -56,12 +57,18 @@ void	*check_all_dbh(void *arg_d)
 	int	i;
 	t_d	*d;
 
-	i = 1;
 	d = (t_d *)arg_d;
-	while (i <= d->num_p)
+	pthread_mutex_lock(&d->death_lock);
+	while (d->one_died == 0)
 	{
-		if (check_one_dbh(&d->p[i++]))
-			break ;
+		pthread_mutex_unlock(&d->death_lock);
+		i = 0;
+		while (i < d->num_p)
+		{
+			if (check_one_dbh(&d->p[i++]))
+				break ;
+		}
+		usleep(1000);
 	}
 	return (NULL);
 }
@@ -71,8 +78,10 @@ void	*eatsleepthink(void *arg_p)
 	t_p	*p;
 
 	p = (t_p *)arg_p;
+	pthread_mutex_lock(&p->d->death_lock);
 	while (p->d->one_died == 0)
 	{
+		pthread_mutex_unlock(&p->d->death_lock);
 		if (p->id % 2 == 1)
 		{
 			pthread_mutex_lock(p->lf);
@@ -81,7 +90,9 @@ void	*eatsleepthink(void *arg_p)
 			{
 				usleep(p->d->ttdie * 1000);
 				prints(p, 'd');
+				pthread_mutex_lock(&p->d->death_lock);
 				p->d->one_died = 1;
+				pthread_mutex_unlock(&p->d->death_lock);
 				return (NULL);
 			}
 			pthread_mutex_lock(p->rf);
@@ -89,6 +100,7 @@ void	*eatsleepthink(void *arg_p)
 		}
 		else
 		{
+			pthread_mutex_unlock(&p->d->death_lock);
 			pthread_mutex_lock(p->rf);
 			prints(p, 'f');
 			pthread_mutex_lock(p->lf);
@@ -114,9 +126,9 @@ void	clean(t_d *d)
 	i = 0;
 	while (i < d->num_p)
 		pthread_mutex_destroy(&d->forks[i++]);
-	pthread_mutex_destroy(d->death_lock);
+	pthread_mutex_destroy(&d->death_lock);
 	free(d->p);
-	free(d->death_lock);
+	// free(&d->death_lock);
 	free(d->forks);
 	free(d->threads);
 	return ;

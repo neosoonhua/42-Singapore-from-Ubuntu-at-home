@@ -43,14 +43,14 @@ void	philos_init(t_d *d)
 {
 	int	i;
 
-	i = 0;
+	i = -1;
 	d->one_died = 0;
-	pthread_mutex_init(d->death_lock, NULL);
-	while (++i <= d->num_p)
+	pthread_mutex_init(&d->death_lock, NULL);
+	while (++i < d->num_p)
 	{
-		d->p[i].id = i;
+		d->p[i].id = i + 1;
 		d->p[i].lf = &d->forks[i];
-		d->p[i].rf = &d->forks[(i) % d->num_p];
+		d->p[i].rf = &d->forks[(i + 1) % d->num_p];
 		d->p[i].d = d;
 		d->p[i].last_meal_time = 0;
 		pthread_mutex_init(&d->forks[i], NULL);
@@ -66,7 +66,7 @@ void	start(t_d *d)
 	if (pthread_create(&d->threads[0], NULL, check_all_dbh, &d) != 0)
 			error(d, "pthread_create failed");
 	while (++i <= d->num_p)
-		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i]) != 0)
+		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i - 1]) != 0)
 			error(d, "pthread_create failed");
 	i = 0;
 	while (++i <= d->num_p)
@@ -82,10 +82,10 @@ int	main(int argc, char **argv)
 		return (print_help());
 	values_init(&d, argc, argv);
 	d.p = malloc(d.num_p * sizeof(t_p));
-	d.death_lock = malloc(sizeof(pthread_mutex_t));
+	// d.death_lock = malloc(sizeof(pthread_mutex_t));
 	d.forks = malloc(d.num_p * sizeof(pthread_mutex_t));
 	d.threads = malloc((1 + d.num_p) * sizeof(pthread_t));
-	if (d.p == NULL || d.death_lock == NULL || d.forks == NULL || d.threads == NULL)
+	if (d.p == NULL || d.forks == NULL || d.threads == NULL)// || d.death_lock == NULL)
 		error(&d, "malloc");
 	philos_init(&d);
 	start(&d);
