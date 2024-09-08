@@ -41,7 +41,7 @@ typedef struct s_d {
 	int				ttsleep;
 	int				musteat;
 	int				one_died;
-	long long		st;
+	long long		start_mstime;
 	t_p				*p;
 	pthread_mutex_t	death_lock;
 	pthread_mutex_t	*forks;

@@ -14,7 +14,7 @@
 
 long long	tfs(t_d *d)
 {
-	return (mstime() - d->st);
+	return (mstime() - d->start_mstime);
 }
 
 void	prints(t_p *p, char a)
@@ -39,12 +39,13 @@ int	check_one_dbh(t_p *p)
 {
 	t_d	*d;
 
+	printf("check_one_dbh\n");
 	d = p->d;
 	if (tfs(d) - p->last_meal_time >= d->ttdie)
 	{
 		pthread_mutex_lock(&d->death_lock);
 		d->one_died = 1;
-		printf("d->one_died = 1");
+		printf("d->one_died = 1\n");
 		pthread_mutex_unlock(&d->death_lock);
 		prints(p, 'd');
 		return (1);
@@ -57,12 +58,14 @@ void	*check_all_dbh(void *arg_d)
 	int	i;
 	t_d	*d;
 
+	printf("check_all_dbh\n");
 	d = (t_d *)arg_d;
 	pthread_mutex_lock(&d->death_lock);
 	while (d->one_died == 0)
 	{
 		pthread_mutex_unlock(&d->death_lock);
 		i = 0;
+		printf("num_p in check_all_dbh(): %d\n", d->num_p);
 		while (i < d->num_p)
 		{
 			if (check_one_dbh(&d->p[i++]))
@@ -131,5 +134,6 @@ void	clean(t_d *d)
 	// free(&d->death_lock);
 	free(d->forks);
 	free(d->threads);
+	free(d);
 	return ;
 }

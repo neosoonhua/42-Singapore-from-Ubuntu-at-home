@@ -33,19 +33,19 @@ void	d_init(t_d *d, int argc, char **argv)
 	else
 		d->musteat = -1;
 	d->one_died = 0;
-	d->st = 0;
+	d->start_mstime = mstime();
 	d->p = malloc(d->num_p * sizeof(t_p));
 	d->forks = malloc(d->num_p * sizeof(pthread_mutex_t));
 	d->threads = malloc((1 + d->num_p) * sizeof(pthread_t));
 	if (d->p == NULL || d->forks == NULL || d->threads == NULL)
 		error(d, "malloc");
-	printf("num_p: %d\n", d->num_p);
+	printf("num_p in d_init(): %d\n", d->num_p);
 	printf("ttdie: %d\n", d->ttdie);
 	printf("tteat: %d\n", d->tteat);
 	printf("ttsleep: %d\n", d->ttsleep);
 	printf("musteat: %d\n", d->musteat);
 	printf("one_died: %d\n", d->one_died);
-	printf("st: %lld\n", d->st);
+	printf("start_mstime: %lld\n", d->start_mstime);
 }
 
 void	p_init(t_d *d)
@@ -54,6 +54,7 @@ void	p_init(t_d *d)
 
 	i = -1;
 	pthread_mutex_init(&d->death_lock, NULL);
+	printf("num_p in p_init(): %d\n", d->num_p);
 	while (++i < d->num_p)
 	{
 		d->p[i].id = i + 1;
@@ -71,8 +72,8 @@ void	start(t_d *d)
 	int	i;
 
 	i = 0;
-	d->st = mstime();
-	if (pthread_create(&d->threads[0], NULL, check_all_dbh, &d) != 0)
+	d->start_mstime = mstime();
+	if (pthread_create(&d->threads[0], NULL, check_all_dbh, d) != 0)
 			error(d, "pthread_create failed");
 	while (++i <= d->num_p)
 		if (pthread_create(&d->threads[i], NULL, eatsleepthink, &d->p[i - 1]) != 0)
@@ -85,13 +86,14 @@ void	start(t_d *d)
 
 int	main(int argc, char **argv)
 {
-	t_d	d;
+	t_d	*d;
 
+	d = malloc(sizeof(t_d));
 	if (argc < 5 || argc > 6)
 		return (print_help());
-	d_init(&d, argc, argv);
-	p_init(&d);
-	start(&d);
-	clean(&d);
+	d_init(d, argc, argv);
+	p_init(d);
+	start(d);
+	clean(d);
 	return (0);
 }
